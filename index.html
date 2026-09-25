@@ -620,6 +620,62 @@ main{
   margin-top:8px
 }
 
+
+/* =========================
+   AGENDA / MELHORIAS
+========================= */
+.datetime-group{
+  grid-column:1/-1;
+  padding:13px;
+  border:1px solid #e5ebe8;
+  border-radius:13px;
+  background:#f8faf9;
+}
+
+.datetime-group-title{
+  display:block;
+  font-size:13px;
+  font-weight:700;
+  margin-bottom:10px;
+  color:#26332e;
+}
+
+.datetime-fields{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.datetime-fields .field{
+  margin-bottom:0;
+}
+
+.improvement-category{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-bottom:7px;
+  font-size:11px;
+  font-weight:800;
+  color:#245c4d;
+  background:#edf5f1;
+  border-radius:20px;
+  padding:5px 9px;
+}
+
+.improvement-value{
+  margin-top:7px;
+  font-size:12px;
+  font-weight:700;
+  color:#44514c;
+}
+
+@media(max-width:500px){
+  .datetime-fields{
+    grid-template-columns:1fr;
+  }
+}
+
 /* =========================
    CHAT DAS SOLICITAÇÕES
 ========================= */
@@ -1192,9 +1248,9 @@ footer{
 
     <div class="card" data-module="goals">
       <span id="countGoals" class="card-count">0</span>
-      <div class="icon">🎯</div>
-      <h3>Metas</h3>
-      <p>Melhorias planejadas e andamento.</p>
+      <div class="icon">🏗️</div>
+      <h3>Melhorias</h3>
+      <p>Projetos, investimentos e melhorias do condomínio.</p>
     </div>
 
     <div id="residentsCard" class="card hidden">
@@ -1596,6 +1652,68 @@ function dateOnlyBR(value) {
   return new Date(
     value + 'T12:00:00'
   ).toLocaleDateString('pt-BR');
+}
+
+
+function dateInputValue(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0,10);
+}
+
+function timeInputValue(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(11,16);
+}
+
+function combineLocalDateTime(dateValue, timeValue) {
+  if (!dateValue || !timeValue) return null;
+  const date = new Date(`${dateValue}T${timeValue}`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function moneyBR(value) {
+  if (value === null || value === undefined || value === '') return '';
+  const number = Number(value);
+  if (!Number.isFinite(number)) return '';
+  return number.toLocaleString('pt-BR', {
+    style:'currency',
+    currency:'BRL'
+  });
+}
+
+function parseMoneyBR(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return null;
+
+  let normalized = raw.replace(/[R$\s]/g,'');
+
+  if (normalized.includes(',')) {
+    normalized = normalized.replace(/\./g,'').replace(',','.');
+  }
+
+  const number = Number(normalized);
+  return Number.isFinite(number) && number >= 0 ? number : NaN;
+}
+
+function improvementCategoryLabel(value) {
+  return ({
+    seguranca_cameras:'📹 Segurança e câmeras',
+    controle_acesso:'🔐 Controle de acesso',
+    iluminacao:'💡 Iluminação',
+    reforma_estrutura:'🧱 Reforma / estrutura',
+    pintura:'🎨 Pintura',
+    area_comum:'🏘️ Área comum',
+    jardinagem:'🌳 Jardinagem',
+    incendio:'🔥 Prevenção de incêndio',
+    tecnologia:'💻 Tecnologia',
+    outros:'🛠️ Outros'
+  })[value] || '🏗️ Melhoria';
 }
 
 function typeLabel(value) {
@@ -2644,9 +2762,9 @@ const modules = {
   },
 
   goals:{
-    title:'🎯 Metas',
+    title:'🏗️ Melhorias',
     subtitle:
-      'Projetos e melhorias do condomínio.',
+      'Projetos, investimentos e melhorias do condomínio.',
     table:'goals'
   },
 
@@ -4028,7 +4146,16 @@ async function loadEvents() {
         ${pill(item.status)}
 
         <span class="pill gray">
-          ${esc(item.event_type)}
+          ${esc(({
+            geral:'Geral',
+            reuniao:'Reunião',
+            reforma:'Reforma',
+            visita:'Visita',
+            servico:'Serviço',
+            manutencao:'Manutenção',
+            limpeza:'Limpeza',
+            outros:'Outros'
+          })[item.event_type] || item.event_type || 'Geral')}
         </span>
       </div>
     `,
@@ -4078,24 +4205,59 @@ function eventForm(
             item.location || ''
           )}
 
-          ${input(
+          ${sel(
             'fType',
             'Tipo',
-            'text',
+            [
+              ['geral','Geral'],
+              ['reuniao','Reunião'],
+              ['reforma','Reforma'],
+              ['visita','Visita'],
+              ['servico','Serviço'],
+              ['manutencao','Manutenção'],
+              ['limpeza','Limpeza'],
+              ['outros','Outros']
+            ],
             item.event_type || 'geral'
           )}
 
-          ${input(
-            'fStart',
-            'Início',
-            'datetime-local'
-          )}
+          <div class="datetime-group">
+            <span class="datetime-group-title">Início</span>
+            <div class="datetime-fields">
+              ${input(
+                'fStartDate',
+                'Data',
+                'date',
+                dateInputValue(item.starts_at),
+                'required'
+              )}
+              ${input(
+                'fStartTime',
+                'Hora',
+                'time',
+                timeInputValue(item.starts_at),
+                'required'
+              )}
+            </div>
+          </div>
 
-          ${input(
-            'fEnd',
-            'Término',
-            'datetime-local'
-          )}
+          <div class="datetime-group">
+            <span class="datetime-group-title">Término</span>
+            <div class="datetime-fields">
+              ${input(
+                'fEndDate',
+                'Data',
+                'date',
+                dateInputValue(item.ends_at)
+              )}
+              ${input(
+                'fEndTime',
+                'Hora',
+                'time',
+                timeInputValue(item.ends_at)
+              )}
+            </div>
+          </div>
 
           ${sel(
             'fStatus',
@@ -4124,28 +4286,60 @@ function eventForm(
     `
   );
 
-  setDateTimeValue(
-    'fStart',
-    item.starts_at
-  );
-
-  setDateTimeValue(
-    'fEnd',
-    item.ends_at
-  );
-
   $('recordForm').onsubmit =
     async event => {
 
       event.preventDefault();
 
-      if (!v('fStart')) {
-
-        msg(
-          $('recordMessage'),
-          'Informe a data e hora de início.'
+      const startDate =
+        combineLocalDateTime(
+          v('fStartDate'),
+          v('fStartTime')
         );
 
+      if (!startDate) {
+        msg(
+          $('recordMessage'),
+          'Informe a data e a hora de início.'
+        );
+        return;
+      }
+
+      const hasEndDate = !!v('fEndDate');
+      const hasEndTime = !!v('fEndTime');
+
+      if (hasEndDate !== hasEndTime) {
+        msg(
+          $('recordMessage'),
+          'Para informar o término, preencha a data e a hora.'
+        );
+        return;
+      }
+
+      const endDate =
+        hasEndDate
+          ? combineLocalDateTime(
+              v('fEndDate'),
+              v('fEndTime')
+            )
+          : null;
+
+      if (hasEndDate && !endDate) {
+        msg(
+          $('recordMessage'),
+          'Informe uma data e hora de término válidas.'
+        );
+        return;
+      }
+
+      if (
+        endDate &&
+        endDate.getTime() < startDate.getTime()
+      ) {
+        msg(
+          $('recordMessage'),
+          'O término não pode ser anterior ao início.'
+        );
         return;
       }
 
@@ -4164,15 +4358,11 @@ function eventForm(
           v('fType') || 'geral',
 
         starts_at:
-          new Date(
-            v('fStart')
-          ).toISOString(),
+          startDate.toISOString(),
 
         ends_at:
-          v('fEnd')
-            ? new Date(
-                v('fEnd')
-              ).toISOString()
+          endDate
+            ? endDate.toISOString()
             : null,
 
         status:
@@ -4643,7 +4833,8 @@ function maintenanceForm(
 
 
 /* =========================
-   METAS
+   MELHORIAS
+   Mantém a tabela public.goals
 ========================= */
 
 async function loadGoals() {
@@ -4670,8 +4861,12 @@ async function loadGoals() {
 
     item => `
 
+      <div class="improvement-category">
+        ${esc(improvementCategoryLabel(item.category))}
+      </div>
+
       <h4>
-        🎯 ${esc(item.title)}
+        ${esc(item.title)}
       </h4>
 
       <p>
@@ -4680,20 +4875,31 @@ async function loadGoals() {
 
         ${
           item.target_date
-            ? `<br>Prazo: ${esc(dateOnlyBR(item.target_date))}`
+            ? `<br>📅 Prazo: ${esc(dateOnlyBR(item.target_date))}`
             : ''
         }
 
       </p>
 
+      ${
+        item.estimated_value !== null &&
+        item.estimated_value !== undefined
+          ? `
+              <div class="improvement-value">
+                💰 Valor estimado: ${esc(moneyBR(item.estimated_value))}
+              </div>
+            `
+          : ''
+      }
+
       <div class="progress">
         <span
-          style="width:${Number(item.progress || 0)}%"
+          style="width:${Math.max(0, Math.min(100, Number(item.progress || 0)))}%"
         ></span>
       </div>
 
       <p style="margin-top:5px">
-        ${Number(item.progress || 0)}% concluído
+        ${Math.max(0, Math.min(100, Number(item.progress || 0)))}% concluído
       </p>
 
       <div class="meta">
@@ -4716,10 +4922,10 @@ function goalForm(
 
   openModal(
     item.id
-      ? 'Editar meta'
-      : 'Nova meta',
+      ? 'Editar melhoria'
+      : 'Nova melhoria',
 
-    'Projeto ou melhoria do condomínio.',
+    'Projeto, investimento ou melhoria do condomínio.',
 
     `
       <form id="recordForm">
@@ -4734,6 +4940,34 @@ function goalForm(
               required
             >
           </div>
+
+          ${sel(
+            'fCategory',
+            'Categoria',
+            [
+              ['seguranca_cameras','📹 Segurança e câmeras'],
+              ['controle_acesso','🔐 Controle de acesso'],
+              ['iluminacao','💡 Iluminação'],
+              ['reforma_estrutura','🧱 Reforma / estrutura'],
+              ['pintura','🎨 Pintura'],
+              ['area_comum','🏘️ Área comum'],
+              ['jardinagem','🌳 Jardinagem'],
+              ['incendio','🔥 Prevenção de incêndio'],
+              ['tecnologia','💻 Tecnologia'],
+              ['outros','🛠️ Outros']
+            ],
+            item.category || 'outros'
+          )}
+
+          ${input(
+            'fEstimatedValue',
+            'Valor estimado (R$)',
+            'text',
+            item.estimated_value !== null &&
+            item.estimated_value !== undefined
+              ? Number(item.estimated_value).toFixed(2).replace('.', ',')
+              : ''
+          )}
 
           ${textarea(
             'fDescription',
@@ -4798,10 +5032,29 @@ function goalForm(
           )
         );
 
+      const estimatedValue =
+        parseMoneyBR(
+          v('fEstimatedValue')
+        );
+
+      if (Number.isNaN(estimatedValue)) {
+        msg(
+          $('recordMessage'),
+          'Informe um valor estimado válido.'
+        );
+        return;
+      }
+
       const payload = {
 
         title:
           v('fTitle'),
+
+        category:
+          v('fCategory') || 'outros',
+
+        estimated_value:
+          estimatedValue,
 
         description:
           v('fDescription') || null,
@@ -4828,7 +5081,9 @@ function goalForm(
       );
     };
 }
-  /* =========================
+
+
+/* =========================
    DOCUMENTOS
 ========================= */
 
