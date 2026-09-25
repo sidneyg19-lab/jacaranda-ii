@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#163c32">
+
+  <title>Condomínio Jacarandá II</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f6f5;
+      color: #1d2925;
+    }
+
+    header {
+      background: linear-gradient(135deg, #163c32, #245c4d);
+      color: white;
+      padding: 32px 20px 45px;
+    }
+
+    .header-content {
+      max-width: 1100px;
+      margin: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo {
+      width: 55px;
+      height: 55px;
+      background: rgba(255,255,255,.14);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+    }
+
+    .brand h1 {
+      font-size: 23px;
+      margin-bottom: 4px;
+    }
+
+    .brand p {
+      opacity: .8;
+      font-size: 14px;
+    }
+
+    .notification {
+      width: 45px;
+      height: 45px;
+      background: rgba(255,255,255,.13);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      position: relative;
+    }
+
+    .badge {
+      position: absolute;
+      right: -3px;
+      top: -3px;
+      background: #e45858;
+      width: 19px;
+      height: 19px;
+      border-radius: 50%;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: -22px auto 50px;
+      padding: 0 20px;
+    }
+
+    .welcome {
+      background: white;
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 6px 25px rgba(0,0,0,.06);
+      margin-bottom: 24px;
+    }
+
+    .welcome h2 {
+      font-size: 20px;
+      margin-bottom: 6px;
+    }
+
+    .welcome p {
+      color: #6c7773;
+      font-size: 14px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      color: #71807a;
+      margin: 26px 0 12px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 17px;
+      padding: 22px 18px;
+      min-height: 145px;
+      box-shadow: 0 3px 15px rgba(0,0,0,.045);
+      cursor: pointer;
+      transition: .2s;
+      border: 1px solid #edf0ef;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,.08);
+    }
+
+    .icon {
+      font-size: 27px;
+      margin-bottom: 17px;
+    }
+
+    .card h3 {
+      font-size: 16px;
+      margin-bottom: 7px;
+    }
+
+    .card p {
+      font-size: 13px;
+      line-height: 1.4;
+      color: #7a8581;
+    }
+
+    .notice {
+      background: #fff;
+      border-left: 4px solid #245c4d;
+      border-radius: 12px;
+      padding: 17px;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      box-shadow: 0 3px 15px rgba(0,0,0,.04);
+    }
+
+    .notice strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .notice span {
+      font-size: 13px;
+      color: #74807c;
+    }
+
+    footer {
+      text-align: center;
+      color: #89938f;
+      font-size: 12px;
+      padding: 25px;
+    }
+
+    @media (max-width: 800px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      header {
+        padding-top: 25px;
+      }
+    }
+
+    @media (max-width: 450px) {
+      main {
+        padding: 0 14px;
+      }
+
+      .brand h1 {
+        font-size: 18px;
+      }
+
+      .brand p {
+        font-size: 12px;
+      }
+
+      .logo {
+        width: 48px;
+        height: 48px;
+      }
+
+      .grid {
+        gap: 10px;
+      }
+
+      .card {
+        min-height: 135px;
+        padding: 17px 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-content">
+
+    <div class="brand">
+      <div class="logo">🌿</div>
+
+      <div>
+        <h1>Condomínio Jacarandá II</h1>
+        <p>Portal do Morador</p>
+      </div>
+    </div>
+
+    <div class="notification">
+      🔔
+      <div class="badge">2</div>
+    </div>
+
+  </div>
+</header>
+
+<main>
+
+  <div class="welcome">
+    <h2>Olá! 👋</h2>
+    <p>Acompanhe avisos, serviços e informações do condomínio.</p>
+  </div>
+
+  <div class="section-title">Acesso rápido</div>
+
+  <div class="grid">
+
+    <div class="card">
+      <div class="icon">📢</div>
+      <h3>Avisos</h3>
+      <p>Comunicados importantes do condomínio.</p>
+    </div>
+
+    <div class="card">
+      <div class="icon">📝</div>
+      <h3>Solicitações</h3>
+      <p>Abra e acompanhe solicitações.</p>
+    </div>
+
+    <div class="card">
+      <div class="icon">📅</div>
+      <h3>Agenda</h3>
+      <p>Reformas, visitas e serviços agendados.</p>
+    </div>
+
+    <div class="card">
+      <div class="icon">🧹</div>
+      <h3>Limpeza</h3>
+      <p>Acompanhe a programação de limpeza.</p>
+    </div>
+
+    <div class="card">
+      <div class="icon">🔧</div>
+      <h3>Manutenções</h3>
+      <p>Serviços e manutenções do condomínio.</p>
+    </div>
+
+    <div class="card">
+      <div class="icon">🎯</div>
+      <h3>Metas</h3>
+      <p>Melhorias planejadas e andamento.</p>
+    </div>
+
+    <div class="card">
+      <div class="icon">👥</div>
+      <h3>Moradores</h3>
+      <p>Cadastro dos apartamentos e moradores.</p>
+    </div>
+
+    <div class="card">
+      <div class="icon">📁</div>
+      <h3>Documentos</h3>
+      <p>Documentos e arquivos importantes.</p>
+    </div>
+
+  </div>
+
+  <div class="section-title">Último aviso</div>
+
+  <div class="notice">
+    <div style="font-size:24px">📢</div>
+
+    <div>
+      <strong>Bem-vindo ao Portal do Jacarandá II</strong>
+      <span>Os comunicados do condomínio aparecerão aqui.</span>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Condomínio Jacarandá II • Portal do Morador
+</footer>
+
+</body>
+</html>
