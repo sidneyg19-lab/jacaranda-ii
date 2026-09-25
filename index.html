@@ -3051,8 +3051,9 @@ async function openRequest(
       <div class="request-thread">
 
         ${
-          messages.map(
-  message => {
+  messages?.length
+    ? messages.map(
+        message => {
 
     const author =
       messageProfiles[
