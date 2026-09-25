@@ -1558,7 +1558,35 @@ async function loadPortal(user) {
 
   currentUser = user;
   currentProfile = profile;
+/*
+  Se for morador, verificamos se o primeiro
+  acesso já vinculou algum apartamento.
+*/
+if (profile.role !== 'admin') {
 
+  const {
+    data: apartments,
+    error: apartmentError
+  } = await client.rpc(
+    'get_my_apartments'
+  );
+
+  if (apartmentError) {
+    console.error(
+      'Erro ao verificar apartamento:',
+      apartmentError
+    );
+  }
+
+  if (
+    !apartmentError &&
+    (!apartments || apartments.length === 0)
+  ) {
+
+    showApartmentLinkScreen();
+    return;
+  }
+}
   $('welcomeName').textContent =
     `Olá, ${profile.full_name || 'Morador'}! 👋`;
 
@@ -1718,10 +1746,13 @@ $('signupForm').addEventListener(
         password,
 
         options: {
-          data: {
-            full_name:name
-          }
-        }
+  emailRedirectTo:
+    'https://sidneyg19-lab.github.io/jacaranda-ii/',
+
+  data: {
+    full_name:name
+  }
+}
 
       });
 
@@ -6136,7 +6167,55 @@ client.auth.onAuthStateChange(
     }
   }
 );
+/* =========================
+   VÍNCULO OBRIGATÓRIO
+   DO PRIMEIRO ACESSO
+========================= */
 
+function showApartmentLinkScreen() {
+
+  $('portal')
+    .classList
+    .add('hidden');
+
+  $('authScreen')
+    .classList
+    .remove('hidden');
+
+  $('loginView')
+    .classList
+    .add('hidden');
+
+  $('signupView')
+    .classList
+    .add('hidden');
+
+  $('acceptView')
+    .classList
+    .remove('hidden');
+
+  const pendingCode =
+    localStorage.getItem(
+      'jacaranda_pending_invite'
+    );
+
+  if (pendingCode) {
+
+    $('acceptCode').value =
+      pendingCode;
+
+  } else {
+
+    $('acceptCode').value =
+      '';
+  }
+
+  msg(
+    $('acceptMessage'),
+    'Sua conta foi criada, mas ainda não está vinculada a um apartamento. Informe o código do convite enviado pela administração.',
+    'success'
+  );
+}
 
 /* =========================
    INICIALIZAÇÃO
