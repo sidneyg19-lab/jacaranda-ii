@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jacaranda-ii-v2';
+const CACHE_NAME = 'jacaranda-ii-v3';
 
 const APP_FILES = [
   './',
@@ -8,53 +8,114 @@ const APP_FILES = [
   './icon-512.png'
 ];
 
+
+/* =========================
+   INSTALAÇÃO
+========================= */
+
 self.addEventListener('install', event => {
+
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(APP_FILES))
+    caches
+      .open(CACHE_NAME)
+      .then(cache =>
+        cache.addAll(APP_FILES)
+      )
   );
 
   self.skipWaiting();
 });
 
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => caches.delete(key))
-      )
-    )
-  );
 
-  self.clients.claim();
+/* =========================
+   ATIVAÇÃO
+========================= */
+
+self.addEventListener('activate', event => {
+
+  event.waitUntil(
+
+    Promise.all([
+
+      caches.keys()
+        .then(keys =>
+          Promise.all(
+            keys
+              .filter(
+                key =>
+                  key !== CACHE_NAME
+              )
+              .map(
+                key =>
+                  caches.delete(key)
+              )
+          )
+        ),
+
+      self.clients.claim()
+
+    ])
+  );
 });
+
+
+/* =========================
+   CACHE / REDE
+========================= */
 
 self.addEventListener('fetch', event => {
 
-  if (event.request.method !== 'GET') {
+  if (
+    event.request.method !== 'GET'
+  ) {
     return;
   }
 
   event.respondWith(
+
     fetch(event.request)
+
       .then(response => {
 
-        const copy = response.clone();
+        /*
+          Só armazenamos respostas válidas.
+        */
 
-        caches.open(CACHE_NAME)
-          .then(cache => {
-            cache.put(
-              event.request,
-              copy
-            );
-          });
+        if (
+          response &&
+          response.status === 200
+        ) {
+
+          const copy =
+            response.clone();
+
+          caches
+            .open(CACHE_NAME)
+            .then(cache => {
+
+              cache.put(
+                event.request,
+                copy
+              );
+
+            })
+            .catch(error => {
+
+              console.warn(
+                'Falha ao atualizar cache:',
+                error
+              );
+
+            });
+        }
 
         return response;
       })
+
       .catch(() =>
-        caches.match(event.request)
+        caches.match(
+          event.request
+        )
       )
   );
 });
@@ -70,60 +131,81 @@ self.addEventListener('push', event => {
 
   try {
 
-    data = event.data
-      ? event.data.json()
-      : {};
+    data =
+      event.data
+        ? event.data.json()
+        : {};
 
   } catch (error) {
 
     data = {
-      title: 'Jacarandá II',
-      body: event.data
-        ? event.data.text()
-        : 'Você tem uma nova notificação.'
-    };
 
+      title:
+        'Jacarandá II',
+
+      body:
+        event.data
+          ? event.data.text()
+          : 'Você tem uma nova notificação.'
+
+    };
   }
+
+  const notificationData = {
+
+    url:
+      data.url ||
+      './',
+
+    notificationId:
+      data.notificationId ||
+      null,
+
+    referenceType:
+      data.referenceType ||
+      null,
+
+    referenceId:
+      data.referenceId ||
+      null
+
+  };
 
   event.waitUntil(
 
-    self.registration.showNotification(
+    self.registration
+      .showNotification(
 
-      data.title || 'Jacarandá II',
+        data.title ||
+        'Jacarandá II',
 
-      {
-        body:
-          data.body ||
-          'Você tem uma nova notificação.',
+        {
 
-        icon:
-          data.icon ||
-          './icon-192.png',
+          body:
+            data.body ||
+            'Você tem uma nova notificação.',
 
-        badge:
-          data.badge ||
-          './icon-192.png',
+          icon:
+            data.icon ||
+            './icon-192.png',
 
-        data: {
+          badge:
+            data.badge ||
+            './icon-192.png',
 
-          url:
-            data.url ||
-            './',
+          tag:
+            data.notificationId
+              ? `jacaranda-${data.notificationId}`
+              : undefined,
 
-          notificationId:
-            data.notificationId ||
-            null,
+          renotify:
+            false,
 
-          referenceType:
-            data.referenceType ||
-            null,
+          data:
+            notificationData
 
-          referenceId:
-            data.referenceId ||
-            null
         }
-      }
-    )
+      )
   );
 });
 
@@ -138,58 +220,130 @@ self.addEventListener(
 
     event.notification.close();
 
+    const notificationData =
+      event.notification.data || {};
+
+    /*
+      URL base enviada pela Edge Function.
+    */
+
     const targetUrl =
       new URL(
-        event.notification
-          .data?.url || './',
-
+        notificationData.url ||
+        './',
         self.registration.scope
-      ).href;
+      );
+
+    /*
+      Adicionamos os dados necessários
+      para o index.html descobrir o
+      destino correto.
+    */
+
+    if (
+      notificationData.referenceType
+    ) {
+
+      targetUrl.searchParams.set(
+        'pushType',
+        notificationData.referenceType
+      );
+    }
+
+    if (
+      notificationData.referenceId
+    ) {
+
+      targetUrl.searchParams.set(
+        'pushRef',
+        notificationData.referenceId
+      );
+    }
+
+    if (
+      notificationData.notificationId
+    ) {
+
+      targetUrl.searchParams.set(
+        'notificationId',
+        notificationData.notificationId
+      );
+    }
+
+    const finalUrl =
+      targetUrl.href;
 
     event.waitUntil(
 
-      clients
+      self.clients
         .matchAll({
-          type: 'window',
-          includeUncontrolled: true
+          type:'window',
+          includeUncontrolled:true
         })
-        .then(windowClients => {
+
+        .then(async windowClients => {
+
+          /*
+            Se o PWA já estiver aberto,
+            usamos a janela existente.
+          */
 
           for (
-            const client of windowClients
+            const client
+            of windowClients
           ) {
 
             if (
               client.url.startsWith(
                 self.registration.scope
-              ) &&
-              'focus' in client
+              )
             ) {
 
-              if (
-                'navigate' in client
-              ) {
+              try {
 
-                client.navigate(
-                  targetUrl
+                if (
+                  'navigate' in client
+                ) {
+
+                  await client.navigate(
+                    finalUrl
+                  );
+                }
+
+                if (
+                  'focus' in client
+                ) {
+
+                  return client.focus();
+                }
+
+              } catch (error) {
+
+                console.warn(
+                  'Falha ao abrir Push na janela existente:',
+                  error
                 );
               }
-
-              return client.focus();
             }
           }
 
+          /*
+            Se o PWA estiver fechado,
+            abre uma nova janela.
+          */
+
           if (
-            clients.openWindow
+            self.clients.openWindow
           ) {
 
-            return clients.openWindow(
-              targetUrl
-            );
+            return self.clients
+              .openWindow(
+                finalUrl
+              );
           }
 
+          return null;
         })
     );
-
   }
 );
