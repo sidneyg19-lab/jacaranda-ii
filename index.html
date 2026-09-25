@@ -966,7 +966,7 @@ footer{
   </div>
 
   <div class="section-title">
-    Último aviso
+    COMUNICADOS DA ADMINISTRAÇÃO
   </div>
 
   <div id="latestNotice" class="panel notice">
@@ -2057,14 +2057,14 @@ async function loadLatestNotice() {
     } = await client
       .from('notices')
       .select('*')
-      .eq('status','publicado')
+      .eq('status', 'publicado')
       .order(
         'created_at',
         {
-          ascending:false
+          ascending: false
         }
       )
-      .limit(1);
+      .limit(3);
 
     if (
       error ||
@@ -2079,11 +2079,11 @@ async function loadLatestNotice() {
 
           <div>
             <strong>
-              Bem-vindo ao Portal do Jacarandá II
+              Nenhum comunicado no momento
             </strong>
 
             <p class="muted" style="margin-top:4px">
-              Os comunicados do condomínio aparecerão aqui.
+              Os comunicados da administração aparecerão aqui.
             </p>
           </div>
         `;
@@ -2091,31 +2091,171 @@ async function loadLatestNotice() {
       return;
     }
 
-    const notice =
-      data[0];
+    const noticesHtml =
+      data.map(
+        (notice, index) => {
+
+          const date =
+            notice.created_at
+              ? new Date(
+                  notice.created_at
+                ).toLocaleDateString(
+                  'pt-BR'
+                )
+              : '';
+
+          const content =
+            notice.content || '';
+
+          const summary =
+            content.length > 180
+              ? content.substring(0, 180) + '...'
+              : content;
+
+          return `
+            <div
+              class="admin-notice-item"
+              data-notice-index="${index}"
+              style="
+                display:flex;
+                gap:14px;
+                padding:14px 4px;
+                cursor:pointer;
+                ${
+                  index < data.length - 1
+                    ? 'border-bottom:1px solid #e5e7eb;'
+                    : ''
+                }
+              "
+            >
+
+              <div style="
+                font-size:24px;
+                flex-shrink:0;
+              ">
+                📢
+              </div>
+
+              <div style="
+                flex:1;
+                min-width:0;
+              ">
+
+                <strong style="
+                  display:block;
+                  margin-bottom:4px;
+                ">
+                  ${esc(notice.title)}
+                </strong>
+
+                <p
+                  class="muted"
+                  style="
+                    margin:0 0 8px;
+                    line-height:1.45;
+                  "
+                >
+                  ${esc(summary)}
+                </p>
+
+                <div style="
+                  display:flex;
+                  gap:8px;
+                  align-items:center;
+                  flex-wrap:wrap;
+                ">
+
+                  ${pill(notice.priority)}
+
+                  ${
+                    date
+                      ? `
+                        <span
+                          class="muted"
+                          style="font-size:12px"
+                        >
+                          ${date} • Administração
+                        </span>
+                      `
+                      : ''
+                  }
+
+                </div>
+
+              </div>
+
+            </div>
+          `;
+        }
+      ).join('');
 
     $('latestNotice').innerHTML =
       `
-        <div style="font-size:24px">
-          📢
-        </div>
+        <div style="width:100%">
 
-        <div>
-          <strong>
-            ${esc(notice.title)}
-          </strong>
+          ${noticesHtml}
 
-          <p class="muted" style="margin-top:4px">
-            ${esc(notice.content)}
-          </p>
+          <div style="
+            padding-top:12px;
+            text-align:right;
+          ">
+            <button
+              id="viewAllNotices"
+              type="button"
+              style="
+                border:0;
+                background:transparent;
+                color:#245c4d;
+                font-weight:700;
+                cursor:pointer;
+                padding:6px 0;
+              "
+            >
+              Ver todos os avisos →
+            </button>
+          </div>
 
-          ${pill(notice.priority)}
         </div>
       `;
 
+    document
+      .querySelectorAll(
+        '.admin-notice-item'
+      )
+      .forEach(item => {
+
+        item.onclick =
+          () => openModule(
+            'notices'
+          );
+
+      });
+
+    const viewAll =
+      $('viewAllNotices');
+
+    if (viewAll) {
+
+      viewAll.onclick =
+        event => {
+
+          event.stopPropagation();
+
+          openModule(
+            'notices'
+          );
+
+        };
+
+    }
+
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      'Comunicados da administração:',
+      error
+    );
+
   }
 }
 
