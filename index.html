@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#163c32">
 
 <title>Condomínio Jacarandá II</title>
@@ -10,625 +10,701 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0
 }
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-  background: #f4f6f5;
-  color: #1d2925;
+body{
+  font-family:Arial,Helvetica,sans-serif;
+  background:#f4f6f5;
+  color:#1d2925
 }
 
-button,
-input,
-select {
-  font: inherit;
+button,input,select,textarea{
+  font:inherit
 }
 
-button {
-  cursor: pointer;
+button{
+  cursor:pointer
 }
 
-.hidden {
-  display: none !important;
+.hidden{
+  display:none!important
 }
 
-.screen {
-  min-height: 100vh;
+.screen{
+  min-height:100vh
 }
 
-/* =========================
-   AUTENTICAÇÃO
-========================= */
-
-.auth-screen {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: linear-gradient(135deg, #163c32, #245c4d);
+.muted{
+  color:#75817d;
+  font-size:13px
 }
 
-.auth-box {
-  background: white;
-  width: 100%;
-  max-width: 440px;
-  padding: 32px;
-  border-radius: 22px;
-  box-shadow: 0 20px 50px rgba(0,0,0,.18);
+.auth-screen{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:linear-gradient(135deg,#163c32,#245c4d)
 }
 
-.auth-brand {
-  text-align: center;
-  margin-bottom: 24px;
+.auth-box{
+  background:#fff;
+  width:100%;
+  max-width:440px;
+  padding:32px;
+  border-radius:22px;
+  box-shadow:0 20px 50px #0003
 }
 
-.auth-logo {
-  width: 70px;
-  height: 70px;
-  margin: 0 auto 14px;
-  border-radius: 20px;
-  background: #edf5f1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 37px;
+.auth-brand{
+  text-align:center;
+  margin-bottom:24px
 }
 
-.auth-brand h1 {
-  font-size: 22px;
-  margin-bottom: 6px;
+.auth-logo{
+  width:70px;
+  height:70px;
+  margin:0 auto 14px;
+  border-radius:20px;
+  background:#edf5f1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:37px
 }
 
-.auth-brand p,
-.muted {
-  color: #75817d;
-  font-size: 13px;
+.auth-brand h1{
+  font-size:22px;
+  margin-bottom:6px
 }
 
-.field {
-  margin-bottom: 15px;
+.field{
+  margin-bottom:15px
 }
 
-.field label {
-  display: block;
-  font-size: 13px;
-  font-weight: 700;
-  margin-bottom: 7px;
+.field label{
+  display:block;
+  font-size:13px;
+  font-weight:700;
+  margin-bottom:7px
 }
 
 .field input,
-.field select {
-  width: 100%;
-  padding: 13px;
-  border: 1px solid #dce2df;
-  border-radius: 11px;
-  outline: none;
-  background: white;
+.field select,
+.field textarea{
+  width:100%;
+  padding:13px;
+  border:1px solid #dce2df;
+  border-radius:11px;
+  outline:none;
+  background:#fff
+}
+
+.field textarea{
+  min-height:105px;
+  resize:vertical
 }
 
 .field input:focus,
-.field select:focus {
-  border-color: #245c4d;
+.field select:focus,
+.field textarea:focus{
+  border-color:#245c4d
 }
 
-.btn {
-  border: 0;
-  padding: 12px 15px;
-  border-radius: 11px;
-  font-weight: 700;
+.btn{
+  border:0;
+  padding:12px 15px;
+  border-radius:11px;
+  font-weight:700
 }
 
-.btn-primary {
-  background: #245c4d;
-  color: white;
+.btn-primary{
+  background:#245c4d;
+  color:#fff
 }
 
-.btn-secondary {
-  background: white;
-  color: #245c4d;
-  border: 1px solid #dce2df;
+.btn-secondary{
+  background:#fff;
+  color:#245c4d;
+  border:1px solid #dce2df
 }
 
-.btn-danger {
-  background: #fff0f0;
-  color: #b34141;
-  border: 1px solid #f0cece;
+.btn-danger{
+  background:#fff0f0;
+  color:#b34141;
+  border:1px solid #f0cece
 }
 
-.btn-small {
-  padding: 8px 10px;
-  font-size: 12px;
+.btn-small{
+  padding:8px 10px;
+  font-size:12px
 }
 
-.btn:disabled {
-  opacity: .55;
-  cursor: wait;
+.btn:disabled{
+  opacity:.55;
+  cursor:wait
 }
 
-.auth-box .btn-primary {
-  width: 100%;
-  padding: 14px;
+.auth-box .btn-primary{
+  width:100%;
+  padding:14px
 }
 
-.auth-links {
-  display: flex;
-  justify-content: center;
-  gap: 14px;
-  margin-top: 15px;
-  flex-wrap: wrap;
+.auth-links{
+  display:flex;
+  justify-content:center;
+  gap:14px;
+  margin-top:15px;
+  flex-wrap:wrap
 }
 
-.link-btn {
-  border: 0;
-  background: none;
-  color: #245c4d;
-  font-size: 13px;
-  text-decoration: underline;
+.link-btn{
+  border:0;
+  background:none;
+  color:#245c4d;
+  font-size:13px;
+  text-decoration:underline
 }
 
-.message {
-  min-height: 18px;
-  margin-top: 12px;
-  text-align: center;
-  font-size: 13px;
+.message{
+  min-height:18px;
+  margin-top:12px;
+  text-align:center;
+  font-size:13px
 }
 
-.message.error {
-  color: #b34141;
+.message.error{
+  color:#b34141
 }
 
-.message.success {
-  color: #24704f;
+.message.success{
+  color:#24704f
 }
 
-/* =========================
-   HEADER
-========================= */
-
-header {
-  background: linear-gradient(135deg, #163c32, #245c4d);
-  color: white;
-  padding: 30px 20px 44px;
+header{
+  background:linear-gradient(135deg,#163c32,#245c4d);
+  color:#fff;
+  padding:30px 20px 44px
 }
 
-.header-content {
-  max-width: 1100px;
-  margin: auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
+.header-content{
+  max-width:1100px;
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 14px;
+.brand{
+  display:flex;
+  align-items:center;
+  gap:14px
 }
 
-.logo {
-  width: 54px;
-  height: 54px;
-  background: rgba(255,255,255,.14);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 29px;
+.logo{
+  width:54px;
+  height:54px;
+  background:#ffffff24;
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:29px
 }
 
-.brand h1 {
-  font-size: 22px;
+.brand h1{
+  font-size:22px
 }
 
-.brand p {
-  opacity: .8;
-  font-size: 13px;
-  margin-top: 4px;
+.brand p{
+  opacity:.8;
+  font-size:13px;
+  margin-top:4px
 }
 
-.header-actions {
-  display: flex;
-  gap: 9px;
-  align-items: center;
+.header-actions{
+  display:flex;
+  gap:9px;
+  align-items:center
 }
 
-.header-btn {
-  border: 0;
-  background: rgba(255,255,255,.13);
-  color: white;
-  height: 44px;
-  padding: 0 14px;
-  border-radius: 13px;
+.header-btn{
+  border:0;
+  background:#ffffff21;
+  color:#fff;
+  height:44px;
+  padding:0 14px;
+  border-radius:13px;
+  position:relative
 }
 
-/* =========================
-   CONTEÚDO
-========================= */
-
-main {
-  max-width: 1100px;
-  margin: -22px auto 50px;
-  padding: 0 20px;
+.badge{
+  position:absolute;
+  top:-6px;
+  right:-5px;
+  background:#b34141;
+  color:#fff;
+  border-radius:20px;
+  min-width:20px;
+  height:20px;
+  padding:0 5px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:10px;
+  font-weight:800
 }
 
-.panel {
-  background: white;
-  border: 1px solid #edf0ef;
-  border-radius: 18px;
-  padding: 21px;
-  box-shadow: 0 5px 22px rgba(0,0,0,.05);
+main{
+  max-width:1100px;
+  margin:-22px auto 50px;
+  padding:0 20px
 }
 
-.welcome {
-  margin-bottom: 23px;
+.panel{
+  background:#fff;
+  border:1px solid #edf0ef;
+  border-radius:18px;
+  padding:21px;
+  box-shadow:0 5px 22px #0000000d
 }
 
-.welcome h2 {
-  font-size: 20px;
-  margin-bottom: 6px;
+.welcome{
+  margin-bottom:23px
 }
 
-.role {
-  display: inline-block;
-  margin-top: 10px;
-  padding: 5px 9px;
-  border-radius: 20px;
-  background: #e8f2ed;
-  color: #245c4d;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
+.welcome h2{
+  font-size:20px;
+  margin-bottom:6px
 }
 
-.section-title {
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: .7px;
-  color: #71807a;
-  margin: 25px 0 11px;
+.role{
+  display:inline-block;
+  margin-top:10px;
+  padding:5px 9px;
+  border-radius:20px;
+  background:#e8f2ed;
+  color:#245c4d;
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase
 }
 
-/* =========================
-   HOME
-========================= */
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+.section-title{
+  font-size:13px;
+  text-transform:uppercase;
+  letter-spacing:.7px;
+  color:#71807a;
+  margin:25px 0 11px
 }
 
-.card {
-  background: white;
-  border-radius: 17px;
-  padding: 21px 18px;
-  min-height: 142px;
-  box-shadow: 0 3px 15px rgba(0,0,0,.045);
-  border: 1px solid #edf0ef;
-  transition: .2s;
-  cursor: pointer;
+.grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px
+}
+
+.card{
+  background:#fff;
+  border-radius:17px;
+  padding:21px 18px;
+  min-height:150px;
+  box-shadow:0 3px 15px #0000000b;
+  border:1px solid #edf0ef;
+  transition:.2s;
+  cursor:pointer;
+  position:relative
 }
 
 .card:hover,
-.apartment-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(0,0,0,.075);
+.apartment-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 22px #00000013
 }
 
-.card .icon {
-  font-size: 27px;
-  margin-bottom: 16px;
+.card .icon{
+  font-size:27px;
+  margin-bottom:16px
 }
 
-.card h3 {
-  font-size: 16px;
-  margin-bottom: 7px;
+.card h3{
+  font-size:16px;
+  margin-bottom:7px
 }
 
-.card p {
-  font-size: 13px;
-  line-height: 1.4;
-  color: #7a8581;
+.card p{
+  font-size:13px;
+  line-height:1.4;
+  color:#7a8581
 }
 
-.notice {
-  border-left: 4px solid #245c4d;
-  display: flex;
-  gap: 13px;
-  align-items: center;
+.card-count{
+  position:absolute;
+  top:15px;
+  right:15px;
+  background:#edf5f1;
+  color:#245c4d;
+  border-radius:20px;
+  padding:5px 9px;
+  font-size:11px;
+  font-weight:800
 }
 
-/* =========================
-   ADMINISTRAÇÃO
-========================= */
-
-.view-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 15px;
+.notice{
+  border-left:4px solid #245c4d;
+  display:flex;
+  gap:13px;
+  align-items:center
 }
 
-.view-header h2 {
-  font-size: 19px;
-  margin-bottom: 5px;
+.view-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  margin-bottom:15px
 }
 
-.actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+.view-header h2{
+  font-size:19px;
+  margin-bottom:5px
 }
 
-/* =========================
-   APARTAMENTOS
-========================= */
-
-.apartments-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap
 }
 
-.apartment-card {
-  background: white;
-  border: 1px solid #edf0ef;
-  border-radius: 16px;
-  padding: 18px;
-  box-shadow: 0 3px 15px rgba(0,0,0,.04);
-  transition: .2s;
-  cursor: pointer;
+.toolbar{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-bottom:14px
 }
 
-.apartment-number {
-  font-size: 18px;
-  font-weight: 700;
-  color: #163c32;
+.toolbar input,
+.toolbar select{
+  padding:10px;
+  border:1px solid #dce2df;
+  border-radius:10px;
+  background:#fff
 }
 
-.apartment-floor {
-  font-size: 12px;
-  color: #7a8581;
-  margin: 7px 0 14px;
+.apartments-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px
 }
 
-.apartment-info {
-  border-top: 1px solid #edf0ef;
-  padding-top: 12px;
-  font-size: 13px;
+.apartment-card{
+  background:#fff;
+  border:1px solid #edf0ef;
+  border-radius:16px;
+  padding:18px;
+  box-shadow:0 3px 15px #0000000a;
+  transition:.2s;
+  cursor:pointer
 }
 
-/* =========================
-   STATUS
-========================= */
-
-.pill {
-  display: inline-flex;
-  margin-top: 9px;
-  padding: 5px 8px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 700;
+.apartment-number{
+  font-size:18px;
+  font-weight:700;
+  color:#163c32
 }
 
-.pill.green {
-  background: #e8f2ed;
-  color: #245c4d;
+.apartment-floor{
+  font-size:12px;
+  color:#7a8581;
+  margin:7px 0 14px
 }
 
-.pill.orange {
-  background: #fff4df;
-  color: #8a641c;
+.apartment-info{
+  border-top:1px solid #edf0ef;
+  padding-top:12px;
+  font-size:13px
 }
 
-.pill.red {
-  background: #fff0f0;
-  color: #b34141;
+.pill{
+  display:inline-flex;
+  margin-top:9px;
+  padding:5px 8px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:700
 }
 
-.pill.gray {
-  background: #eef1f0;
-  color: #66716d;
+.pill.green{
+  background:#e8f2ed;
+  color:#245c4d
 }
 
-/* =========================
-   MORADORES / CONVITES
-========================= */
-
-.two-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+.pill.orange{
+  background:#fff4df;
+  color:#8a641c
 }
 
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.pill.red{
+  background:#fff0f0;
+  color:#b34141
 }
 
-.list-item {
-  border: 1px solid #e7ece9;
-  border-radius: 13px;
-  padding: 14px;
+.pill.gray{
+  background:#eef1f0;
+  color:#66716d
 }
 
-.list-top {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  align-items: flex-start;
+.pill.blue{
+  background:#eaf2ff;
+  color:#315f9b
 }
 
-.list-item h4 {
-  font-size: 14px;
-  margin-bottom: 5px;
+.two-col{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px
 }
 
-.list-item p {
-  font-size: 12px;
-  color: #74807c;
-  line-height: 1.45;
+.list{
+  display:flex;
+  flex-direction:column;
+  gap:10px
+}
+
+.list-item{
+  border:1px solid #e7ece9;
+  border-radius:13px;
+  padding:14px;
+  background:#fff
+}
+
+.list-top{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start
+}
+
+.list-item h4{
+  font-size:14px;
+  margin-bottom:5px
+}
+
+.list-item p{
+  font-size:12px;
+  color:#74807c;
+  line-height:1.55
 }
 
 .empty,
-.loading {
-  padding: 18px;
-  border: 1px dashed #d9e0dd;
-  border-radius: 12px;
-  color: #74807c;
-  font-size: 13px;
+.loading{
+  padding:18px;
+  border:1px dashed #d9e0dd;
+  border-radius:12px;
+  color:#74807c;
+  font-size:13px
 }
 
-/* =========================
-   FORMULÁRIOS
-========================= */
-
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px
 }
 
-.form-grid .full {
-  grid-column: 1 / -1;
+.form-grid .full{
+  grid-column:1/-1
 }
 
-.invite-result {
-  margin-top: 14px;
-  background: #edf5f1;
-  border: 1px solid #d5e7de;
-  border-radius: 13px;
-  padding: 15px;
+.invite-result{
+  margin-top:14px;
+  background:#edf5f1;
+  border:1px solid #d5e7de;
+  border-radius:13px;
+  padding:15px
 }
 
-.invite-code {
-  font-size: 21px;
-  font-weight: 800;
-  letter-spacing: 1.5px;
-  color: #163c32;
-  margin: 7px 0;
+.invite-code{
+  font-size:21px;
+  font-weight:800;
+  letter-spacing:1.5px;
+  color:#163c32;
+  margin:7px 0
 }
 
-/* =========================
-   MODAL
-========================= */
-
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.42);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 18px;
-  z-index: 50;
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:#0000006b;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  z-index:50
 }
 
-.modal {
-  width: 100%;
-  max-width: 520px;
-  background: white;
-  border-radius: 18px;
-  padding: 22px;
-  max-height: 90vh;
-  overflow: auto;
+.modal{
+  width:100%;
+  max-width:620px;
+  background:#fff;
+  border-radius:18px;
+  padding:22px;
+  max-height:90vh;
+  overflow:auto
 }
 
-.modal-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 18px;
+.modal.wide{
+  max-width:760px
 }
 
-.modal-close {
-  border: 0;
-  background: #eef2f0;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+.modal-head{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+  margin-bottom:18px
 }
 
-footer {
-  text-align: center;
-  color: #89938f;
-  font-size: 12px;
-  padding: 25px;
+.modal-close{
+  border:0;
+  background:#eef2f0;
+  width:34px;
+  height:34px;
+  border-radius:10px
 }
 
-/* =========================
-   RESPONSIVO
-========================= */
+.progress{
+  height:9px;
+  background:#edf0ef;
+  border-radius:20px;
+  overflow:hidden;
+  margin-top:9px
+}
 
-@media (max-width: 800px) {
+.progress > span{
+  display:block;
+  height:100%;
+  background:#245c4d
+}
+
+.meta{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:8px
+}
+
+.request-thread{
+  max-height:300px;
+  overflow:auto;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin:12px 0
+}
+
+.bubble{
+  padding:10px 12px;
+  border-radius:12px;
+  background:#f1f4f3;
+  font-size:13px
+}
+
+.bubble.me{
+  background:#e8f2ed
+}
+
+.notification-item.unread{
+  border-left:4px solid #245c4d
+}
+
+.file-link{
+  color:#245c4d;
+  font-weight:700;
+  text-decoration:none
+}
+
+footer{
+  text-align:center;
+  color:#89938f;
+  font-size:12px;
+  padding:25px
+}
+
+@media(max-width:800px){
   .grid,
-  .apartments-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .apartments-grid{
+    grid-template-columns:repeat(2,1fr)
   }
 
-  .two-col {
-    grid-template-columns: 1fr;
+  .two-col{
+    grid-template-columns:1fr
   }
 }
 
-@media (max-width: 500px) {
-  main {
-    padding: 0 13px;
+@media(max-width:500px){
+  main{
+    padding:0 13px
   }
 
-  .brand h1 {
-    font-size: 17px;
+  .brand h1{
+    font-size:17px
   }
 
-  .brand p {
-    font-size: 11px;
+  .brand p{
+    font-size:11px
   }
 
-  .logo {
-    width: 46px;
-    height: 46px;
+  .logo{
+    width:46px;
+    height:46px
   }
 
-  .grid {
-    gap: 9px;
+  .grid{
+    gap:9px
   }
 
-  .card {
-    padding: 16px 13px;
-    min-height: 130px;
+  .card{
+    padding:16px 13px;
+    min-height:140px
   }
 
-  .apartments-grid {
-    grid-template-columns: 1fr;
+  .apartments-grid{
+    grid-template-columns:1fr
   }
 
-  .view-header {
-    align-items: flex-start;
-    flex-direction: column;
+  .view-header{
+    align-items:flex-start;
+    flex-direction:column
   }
 
-  .form-grid {
-    grid-template-columns: 1fr;
+  .form-grid{
+    grid-template-columns:1fr
   }
 
-  .form-grid .full {
-    grid-column: auto;
+  .form-grid .full{
+    grid-column:auto
   }
 
-  .auth-box {
-    padding: 25px 20px;
+  .auth-box{
+    padding:25px 20px
   }
 
-  .header-btn {
-    padding: 0 10px;
+  .header-btn{
+    padding:0 10px
+  }
+
+  .header-actions{
+    gap:5px
+  }
+
+  .header-btn span.label{
+    display:none
   }
 }
 </style>
@@ -636,12 +712,7 @@ footer {
 
 <body>
 
-<!-- =========================
-     LOGIN / CADASTRO
-========================= -->
-
 <section id="authScreen" class="screen auth-screen">
-
   <div class="auth-box">
 
     <div class="auth-brand">
@@ -650,73 +721,40 @@ footer {
       <p>Portal do Morador</p>
     </div>
 
-    <!-- LOGIN -->
-
     <div id="loginView">
-
       <form id="loginForm">
 
         <div class="field">
           <label>E-mail</label>
-          <input
-            id="loginEmail"
-            type="email"
-            autocomplete="email"
-            required
-          >
+          <input id="loginEmail" type="email" autocomplete="email" required>
         </div>
 
         <div class="field">
           <label>Senha</label>
-          <input
-            id="loginPassword"
-            type="password"
-            autocomplete="current-password"
-            required
-          >
+          <input id="loginPassword" type="password" autocomplete="current-password" required>
         </div>
 
-        <button
-          id="loginButton"
-          class="btn btn-primary"
-          type="submit"
-        >
+        <button id="loginButton" class="btn btn-primary">
           Entrar
         </button>
 
-        <div
-          id="loginMessage"
-          class="message"
-        ></div>
-
+        <div id="loginMessage" class="message"></div>
       </form>
 
       <div class="auth-links">
-        <button
-          id="showSignup"
-          class="link-btn"
-        >
+        <button id="showSignup" class="link-btn">
           Primeiro acesso / Criar conta
         </button>
       </div>
-
     </div>
 
-    <!-- CADASTRO -->
-
-    <div
-      id="signupView"
-      class="hidden"
-    >
+    <div id="signupView" class="hidden">
 
       <h3 style="margin-bottom:7px">
         Criar acesso
       </h3>
 
-      <p
-        class="muted"
-        style="margin-bottom:17px"
-      >
+      <p class="muted" style="margin-bottom:17px">
         Use o mesmo e-mail para o qual o administrador gerou o convite.
       </p>
 
@@ -724,171 +762,104 @@ footer {
 
         <div class="field">
           <label>Nome completo</label>
-          <input
-            id="signupName"
-            required
-          >
+          <input id="signupName" required>
         </div>
 
         <div class="field">
           <label>E-mail</label>
-          <input
-            id="signupEmail"
-            type="email"
-            autocomplete="email"
-            required
-          >
+          <input id="signupEmail" type="email" required>
         </div>
 
         <div class="field">
           <label>Senha</label>
-          <input
-            id="signupPassword"
-            type="password"
-            minlength="6"
-            autocomplete="new-password"
-            required
-          >
+          <input id="signupPassword" type="password" minlength="6" required>
         </div>
 
         <div class="field">
           <label>Código do convite</label>
-          <input
-            id="signupCode"
-            maxlength="30"
-            autocomplete="off"
-            required
-          >
+          <input id="signupCode" required>
         </div>
 
-        <button
-          id="signupButton"
-          class="btn btn-primary"
-          type="submit"
-        >
+        <button id="signupButton" class="btn btn-primary">
           Criar minha conta
         </button>
 
-        <div
-          id="signupMessage"
-          class="message"
-        ></div>
-
+        <div id="signupMessage" class="message"></div>
       </form>
 
       <div class="auth-links">
-        <button
-          id="backLogin"
-          class="link-btn"
-        >
+        <button id="backLogin" class="link-btn">
           ← Voltar para entrar
         </button>
       </div>
 
     </div>
 
-    <!-- ACEITAR CONVITE -->
-
-    <div
-      id="acceptView"
-      class="hidden"
-    >
+    <div id="acceptView" class="hidden">
 
       <h3 style="margin-bottom:7px">
         Concluir primeiro acesso
       </h3>
 
-      <p
-        class="muted"
-        style="margin-bottom:17px"
-      >
-        Sua conta foi criada. Informe o código do convite para vincular seu apartamento.
+      <p class="muted" style="margin-bottom:17px">
+        Informe o código do convite para vincular seu apartamento.
       </p>
 
       <form id="acceptForm">
 
         <div class="field">
           <label>Código do convite</label>
-          <input
-            id="acceptCode"
-            required
-          >
+          <input id="acceptCode" required>
         </div>
 
-        <button
-          id="acceptButton"
-          class="btn btn-primary"
-          type="submit"
-        >
+        <button id="acceptButton" class="btn btn-primary">
           Vincular apartamento
         </button>
 
-        <div
-          id="acceptMessage"
-          class="message"
-        ></div>
+        <div id="acceptMessage" class="message"></div>
 
       </form>
 
     </div>
 
   </div>
-
 </section>
 
-<!-- =========================
-     PORTAL
-========================= -->
-
-<div
-  id="portal"
-  class="hidden"
->
+<div id="portal" class="hidden">
 
 <header>
-
   <div class="header-content">
 
     <div class="brand">
-
-      <div class="logo">
-        🌿
-      </div>
+      <div class="logo">🌿</div>
 
       <div>
         <h1>Condomínio Jacarandá II</h1>
         <p>Portal do Morador</p>
       </div>
-
     </div>
 
     <div class="header-actions">
 
-      <button
-        id="homeButton"
-        class="header-btn"
-      >
-        ⌂ Início
+      <button id="notificationButton" class="header-btn">
+        🔔
+        <span id="notificationBadge" class="badge hidden">0</span>
       </button>
 
-      <button
-        id="logoutButton"
-        class="header-btn"
-      >
+      <button id="homeButton" class="header-btn">
+        ⌂ <span class="label">Início</span>
+      </button>
+
+      <button id="logoutButton" class="header-btn">
         Sair
       </button>
 
     </div>
 
   </div>
-
 </header>
 
 <main>
-
-<!-- =========================
-     HOME
-========================= -->
 
 <section id="homeView">
 
@@ -902,10 +873,7 @@ footer {
       Acompanhe avisos, serviços e informações do condomínio.
     </p>
 
-    <span
-      id="userRole"
-      class="role"
-    ></span>
+    <span id="userRole" class="role"></span>
 
   </div>
 
@@ -915,52 +883,57 @@ footer {
 
   <div class="grid">
 
-    <div class="card">
+    <div class="card" data-module="notices">
+      <span id="countNotices" class="card-count">0</span>
       <div class="icon">📢</div>
       <h3>Avisos</h3>
       <p>Comunicados importantes do condomínio.</p>
     </div>
 
-    <div class="card">
+    <div class="card" data-module="requests">
+      <span id="countRequests" class="card-count">0</span>
       <div class="icon">📝</div>
       <h3>Solicitações</h3>
       <p>Abra e acompanhe solicitações.</p>
     </div>
 
-    <div class="card">
+    <div class="card" data-module="events">
+      <span id="countEvents" class="card-count">0</span>
       <div class="icon">📅</div>
       <h3>Agenda</h3>
       <p>Reformas, visitas e serviços agendados.</p>
     </div>
 
-    <div class="card">
+    <div class="card" data-module="cleaning">
+      <span id="countCleaning" class="card-count">0</span>
       <div class="icon">🧹</div>
       <h3>Limpeza</h3>
       <p>Acompanhe a programação de limpeza.</p>
     </div>
 
-    <div class="card">
+    <div class="card" data-module="maintenance">
+      <span id="countMaintenance" class="card-count">0</span>
       <div class="icon">🔧</div>
       <h3>Manutenções</h3>
       <p>Serviços e manutenções do condomínio.</p>
     </div>
 
-    <div class="card">
+    <div class="card" data-module="goals">
+      <span id="countGoals" class="card-count">0</span>
       <div class="icon">🎯</div>
       <h3>Metas</h3>
       <p>Melhorias planejadas e andamento.</p>
     </div>
 
-    <div
-      id="residentsCard"
-      class="card hidden"
-    >
+    <div id="residentsCard" class="card hidden">
+      <span id="countResidents" class="card-count">0</span>
       <div class="icon">👥</div>
       <h3>Moradores</h3>
       <p>Cadastro dos apartamentos e moradores.</p>
     </div>
 
-    <div class="card">
+    <div class="card" data-module="documents">
+      <span id="countDocuments" class="card-count">0</span>
       <div class="icon">📁</div>
       <h3>Documentos</h3>
       <p>Documentos e arquivos importantes.</p>
@@ -972,39 +945,56 @@ footer {
     Último aviso
   </div>
 
-  <div class="panel notice">
+  <div id="latestNotice" class="panel notice">
 
     <div style="font-size:24px">
       📢
     </div>
 
     <div>
+      <strong>Bem-vindo ao Portal do Jacarandá II</strong>
 
-      <strong>
-        Bem-vindo ao Portal do Jacarandá II
-      </strong>
-
-      <p
-        class="muted"
-        style="margin-top:4px"
-      >
+      <p class="muted" style="margin-top:4px">
         Os comunicados do condomínio aparecerão aqui.
       </p>
-
     </div>
 
   </div>
 
 </section>
 
-<!-- =========================
-     LISTA DE APARTAMENTOS
-========================= -->
+<section id="moduleView" class="hidden">
 
-<section
-  id="residentsView"
-  class="hidden"
->
+  <div class="section-title">
+    Portal
+  </div>
+
+  <div class="panel view-header">
+
+    <div>
+      <h2 id="moduleTitle">Módulo</h2>
+      <p id="moduleSubtitle" class="muted"></p>
+    </div>
+
+    <div class="actions">
+
+      <button id="moduleNewButton" class="btn btn-primary hidden">
+        + Novo
+      </button>
+
+      <button class="btn btn-secondary" onclick="showHome()">
+        ← Voltar
+      </button>
+
+    </div>
+
+  </div>
+
+  <div id="moduleList" class="list"></div>
+
+</section>
+
+<section id="residentsView" class="hidden">
 
   <div class="section-title">
     Administração
@@ -1013,45 +1003,30 @@ footer {
   <div class="panel view-header">
 
     <div>
-
-      <h2>
-        👥 Gestão de moradores
-      </h2>
+      <h2>👥 Gestão de moradores</h2>
 
       <p class="muted">
         Clique em um apartamento para consultar moradores e convites.
       </p>
-
     </div>
 
-    <button
-      class="btn btn-secondary"
-      onclick="showHome()"
-    >
+    <button class="btn btn-secondary" onclick="showHome()">
       ← Voltar
     </button>
 
   </div>
 
-  <div
-    id="apartmentsGrid"
-    class="apartments-grid"
-  >
+  <div id="apartmentsGrid" class="apartments-grid">
+
     <div class="loading">
       Carregando apartamentos...
     </div>
+
   </div>
 
 </section>
 
-<!-- =========================
-     DETALHE DO APARTAMENTO
-========================= -->
-
-<section
-  id="apartmentView"
-  class="hidden"
->
+<section id="apartmentView" class="hidden">
 
   <div class="section-title">
     Administração
@@ -1060,31 +1035,17 @@ footer {
   <div class="panel view-header">
 
     <div>
-
-      <h2 id="apartmentTitle">
-        🏠 Apartamento
-      </h2>
-
-      <p
-        id="apartmentSubtitle"
-        class="muted"
-      ></p>
-
+      <h2 id="apartmentTitle">🏠 Apartamento</h2>
+      <p id="apartmentSubtitle" class="muted"></p>
     </div>
 
     <div class="actions">
 
-      <button
-        id="newInviteButton"
-        class="btn btn-primary"
-      >
+      <button id="newInviteButton" class="btn btn-primary">
         + Convidar morador
       </button>
 
-      <button
-        class="btn btn-secondary"
-        onclick="showResidents()"
-      >
+      <button class="btn btn-secondary" onclick="showResidents()">
         ← Apartamentos
       </button>
 
@@ -1100,10 +1061,7 @@ footer {
         Moradores vinculados
       </h3>
 
-      <div
-        id="residentList"
-        class="list"
-      ></div>
+      <div id="residentList" class="list"></div>
 
     </div>
 
@@ -1113,14 +1071,42 @@ footer {
         Convites
       </h3>
 
-      <div
-        id="inviteList"
-        class="list"
-      ></div>
+      <div id="inviteList" class="list"></div>
 
     </div>
 
   </div>
+
+</section>
+
+<section id="notificationsView" class="hidden">
+
+  <div class="section-title">
+    Portal
+  </div>
+
+  <div class="panel view-header">
+
+    <div>
+      <h2>🔔 Notificações</h2>
+      <p class="muted">Suas atualizações recentes.</p>
+    </div>
+
+    <div class="actions">
+
+      <button id="readAllButton" class="btn btn-primary">
+        Marcar todas como lidas
+      </button>
+
+      <button class="btn btn-secondary" onclick="showHome()">
+        ← Voltar
+      </button>
+
+    </div>
+
+  </div>
+
+  <div id="notificationsList" class="list"></div>
 
 </section>
 
@@ -1132,35 +1118,20 @@ footer {
 
 </div>
 
-<!-- =========================
-     MODAL DE CONVITE
-========================= -->
-
-<div
-  id="inviteModal"
-  class="modal-backdrop hidden"
->
+<div id="inviteModal" class="modal-backdrop hidden">
 
   <div class="modal">
 
     <div class="modal-head">
 
       <div>
-
-        <h3>
-          Novo convite
-        </h3>
-
-        <p
-          id="inviteApartmentLabel"
-          class="muted"
-        ></p>
-
+        <h3>Novo convite</h3>
+        <p id="inviteApartmentLabel" class="muted"></p>
       </div>
 
       <button
-        id="closeInviteModal"
         class="modal-close"
+        onclick="closeModal('inviteModal')"
       >
         ✕
       </button>
@@ -1172,50 +1143,23 @@ footer {
       <div class="form-grid">
 
         <div class="field full">
-
-          <label>
-            Nome completo
-          </label>
-
-          <input
-            id="inviteName"
-            required
-          >
-
+          <label>Nome completo</label>
+          <input id="inviteName" required>
         </div>
 
         <div class="field">
-
-          <label>
-            E-mail
-          </label>
-
-          <input
-            id="inviteEmail"
-            type="email"
-            required
-          >
-
+          <label>E-mail</label>
+          <input id="inviteEmail" type="email" required>
         </div>
 
         <div class="field">
-
-          <label>
-            Telefone
-          </label>
-
-          <input
-            id="invitePhone"
-            type="tel"
-          >
-
+          <label>Telefone</label>
+          <input id="invitePhone" type="tel">
         </div>
 
         <div class="field full">
 
-          <label>
-            Tipo
-          </label>
+          <label>Tipo</label>
 
           <select id="inviteType">
 
@@ -1237,23 +1181,13 @@ footer {
 
       </div>
 
-      <button
-        id="createInviteButton"
-        class="btn btn-primary"
-        type="submit"
-      >
+      <button class="btn btn-primary">
         Gerar convite
       </button>
 
-      <div
-        id="inviteMessage"
-        class="message"
-      ></div>
+      <div id="inviteMessage" class="message"></div>
 
-      <div
-        id="inviteResult"
-        class="invite-result hidden"
-      ></div>
+      <div id="inviteResult" class="invite-result hidden"></div>
 
     </form>
 
@@ -1261,11 +1195,33 @@ footer {
 
 </div>
 
-<script>
+<div id="genericModal" class="modal-backdrop hidden">
 
-/* =========================
-   SUPABASE
-========================= */
+  <div class="modal wide">
+
+    <div class="modal-head">
+
+      <div>
+        <h3 id="genericModalTitle">Cadastro</h3>
+        <p id="genericModalSubtitle" class="muted"></p>
+      </div>
+
+      <button
+        class="modal-close"
+        onclick="closeModal('genericModal')"
+      >
+        ✕
+      </button>
+
+    </div>
+
+    <div id="genericModalBody"></div>
+
+  </div>
+
+</div>
+
+<script>
 
 const SUPABASE_URL =
   'https://jfajhljoockoneeunzfm.supabase.co';
@@ -1279,20 +1235,28 @@ const client =
     SUPABASE_KEY
   );
 
-/* =========================
-   ESTADO
-========================= */
-
 let currentProfile = null;
 let currentUser = null;
 let currentApartment = null;
-
-/* =========================
-   UTILIDADES
-========================= */
+let currentModule = null;
 
 const $ = id =>
   document.getElementById(id);
+
+function esc(value) {
+
+  return String(value ?? '')
+    .replace(
+      /[&<>"']/g,
+      character => ({
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        '"':'&quot;',
+        "'":'&#039;'
+      })[character]
+    );
+}
 
 function msg(
   element,
@@ -1311,21 +1275,6 @@ function clearMsg(element) {
   element.className = 'message';
 }
 
-function esc(value) {
-
-  return String(value ?? '')
-    .replace(
-      /[&<>"']/g,
-      character => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-      })[character]
-    );
-}
-
 function dateBR(value) {
 
   if (!value) {
@@ -1336,25 +1285,69 @@ function dateBR(value) {
     .toLocaleString('pt-BR');
 }
 
+function dateOnlyBR(value) {
+
+  if (!value) {
+    return '-';
+  }
+
+  return new Date(
+    value + 'T12:00:00'
+  ).toLocaleDateString('pt-BR');
+}
+
 function typeLabel(value) {
 
   return ({
-    morador: 'Morador',
-    proprietario: 'Proprietário',
-    inquilino: 'Inquilino'
+    morador:'Morador',
+    proprietario:'Proprietário',
+    inquilino:'Inquilino'
   })[value] || value || 'Morador';
 }
 
-/* =========================
-   NAVEGAÇÃO
-========================= */
+function isAdmin() {
+
+  return currentProfile?.role === 'admin';
+}
+
+function v(id) {
+
+  return $(id)?.value?.trim() || '';
+}
+
+function closeModal(id) {
+
+  $(id).classList.add('hidden');
+}
+
+function openModal(
+  title,
+  subtitle,
+  html
+) {
+
+  $('genericModalTitle').textContent =
+    title;
+
+  $('genericModalSubtitle').textContent =
+    subtitle || '';
+
+  $('genericModalBody').innerHTML =
+    html;
+
+  $('genericModal')
+    .classList
+    .remove('hidden');
+}
 
 function hideViews() {
 
   [
     'homeView',
+    'moduleView',
     'residentsView',
-    'apartmentView'
+    'apartmentView',
+    'notificationsView'
   ].forEach(
     id => $(id).classList.add('hidden')
   );
@@ -1368,85 +1361,169 @@ function showHome() {
     .classList
     .remove('hidden');
 
+  refreshDashboard();
+
   window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
+    top:0,
+    behavior:'smooth'
   });
 }
 
-async function showResidents() {
+function pill(value) {
 
-  hideViews();
+  const text =
+    String(value || '')
+      .replaceAll('_',' ');
 
-  $('residentsView')
-    .classList
-    .remove('hidden');
+  let color = 'gray';
 
-  await loadApartments();
+  if (
+    [
+      'publicado',
+      'concluida',
+      'concluido',
+      'ativo',
+      'utilizado'
+    ].includes(value)
+  ) {
+    color = 'green';
+  }
 
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
-  });
+  if (
+    [
+      'aberta',
+      'agendado',
+      'agendada',
+      'programada',
+      'planejada',
+      'pendente',
+      'normal'
+    ].includes(value)
+  ) {
+    color = 'orange';
+  }
+
+  if (
+    [
+      'urgente',
+      'cancelada',
+      'cancelado',
+      'inativo'
+    ].includes(value)
+  ) {
+    color = 'red';
+  }
+
+  if (
+    [
+      'em_analise',
+      'em_andamento',
+      'aguardando_morador',
+      'alta'
+    ].includes(value)
+  ) {
+    color = 'blue';
+  }
+
+  return `
+    <span class="pill ${color}">
+      ${esc(text)}
+    </span>
+  `;
 }
 
-/* =========================
-   AUTENTICAÇÃO
+function input(
+  id,
+  label,
+  type = 'text',
+  value = '',
+  required = ''
+) {
+
+  return `
+    <div class="field">
+      <label>${label}</label>
+      <input
+        id="${id}"
+        type="${type}"
+        value="${esc(value)}"
+        ${required}
+      >
+    </div>
+  `;
+}
+
+function textarea(
+  id,
+  label,
+  value = ''
+) {
+
+  return `
+    <div class="field full">
+      <label>${label}</label>
+      <textarea id="${id}">${esc(value)}</textarea>
+    </div>
+  `;
+}
+
+function sel(
+  id,
+  label,
+  options,
+  value = ''
+) {
+
+  return `
+    <div class="field">
+      <label>${label}</label>
+      <select id="${id}">
+        ${options.map(
+          option => `
+            <option
+              value="${option[0]}"
+              ${option[0] === value ? 'selected' : ''}
+            >
+              ${option[1]}
+            </option>
+          `
+        ).join('')}
+      </select>
+    </div>
+  `;
+}
+  /* =========================
+   AUTENTICAÇÃO / PORTAL
 ========================= */
 
 function showLogin() {
 
-  $('portal')
-    .classList
-    .add('hidden');
+  $('portal').classList.add('hidden');
+  $('authScreen').classList.remove('hidden');
 
-  $('authScreen')
-    .classList
-    .remove('hidden');
-
-  $('loginView')
-    .classList
-    .remove('hidden');
-
-  $('signupView')
-    .classList
-    .add('hidden');
-
-  $('acceptView')
-    .classList
-    .add('hidden');
+  $('loginView').classList.remove('hidden');
+  $('signupView').classList.add('hidden');
+  $('acceptView').classList.add('hidden');
 }
 
 function showPortal() {
 
-  $('authScreen')
-    .classList
-    .add('hidden');
-
-  $('portal')
-    .classList
-    .remove('hidden');
+  $('authScreen').classList.add('hidden');
+  $('portal').classList.remove('hidden');
 
   showHome();
 }
-
-/* =========================
-   CARREGAR PERFIL
-========================= */
 
 async function loadPortal(user) {
 
   const {
     data: profile,
     error
-  } =
-    await client
-      .from('profiles')
-      .select(
-        'full_name, role, active'
-      )
-      .eq('id', user.id)
-      .single();
+  } = await client
+    .from('profiles')
+    .select('full_name,role,active')
+    .eq('id',user.id)
+    .single();
 
   if (
     error ||
@@ -1494,92 +1571,86 @@ async function loadPortal(user) {
     .classList
     .toggle(
       'hidden',
-      profile.role !== 'admin'
+      !isAdmin()
     );
 
   showPortal();
 }
 
+
 /* =========================
    LOGIN
 ========================= */
 
-$('loginForm')
-  .addEventListener(
-    'submit',
-    async event => {
+$('loginForm').addEventListener(
+  'submit',
+  async event => {
 
-      event.preventDefault();
+    event.preventDefault();
 
-      clearMsg(
-        $('loginMessage')
-      );
+    clearMsg(
+      $('loginMessage')
+    );
 
-      $('loginButton').disabled = true;
-      $('loginButton').textContent =
-        'Entrando...';
+    $('loginButton').disabled = true;
+    $('loginButton').textContent =
+      'Entrando...';
 
-      const email =
-        $('loginEmail')
-          .value
-          .trim();
+    try {
 
-      const password =
-        $('loginPassword')
-          .value;
+      const {
+        data,
+        error
+      } = await client.auth
+        .signInWithPassword({
+          email:
+            $('loginEmail')
+              .value
+              .trim(),
 
-      try {
+          password:
+            $('loginPassword')
+              .value
+        });
 
-        const {
-          data,
-          error
-        } =
-          await client.auth
-            .signInWithPassword({
-              email,
-              password
-            });
+      if (
+        error ||
+        !data.user
+      ) {
 
-        if (
-          error ||
-          !data.user
-        ) {
-
-          msg(
-            $('loginMessage'),
-            'E-mail ou senha inválidos.'
-          );
-
-          return;
-        }
-
-        await loadPortal(
-          data.user
+        throw new Error(
+          'E-mail ou senha inválidos.'
         );
-
-      } catch (error) {
-
-        console.error(error);
-
-        msg(
-          $('loginMessage'),
-          'Não foi possível entrar.'
-        );
-
-      } finally {
-
-        $('loginButton').disabled =
-          false;
-
-        $('loginButton').textContent =
-          'Entrar';
       }
 
+      await loadPortal(
+        data.user
+      );
+
+    } catch (error) {
+
+      console.error(error);
+
+      msg(
+        $('loginMessage'),
+        error.message ||
+        'Não foi possível entrar.'
+      );
+
+    } finally {
+
+      $('loginButton').disabled =
+        false;
+
+      $('loginButton').textContent =
+        'Entrar';
     }
-  );
+  }
+);
+
 
 /* =========================
-   ABRIR CADASTRO
+   CADASTRO
 ========================= */
 
 $('showSignup').onclick =
@@ -1599,226 +1670,207 @@ $('showSignup').onclick =
   };
 
 $('backLogin').onclick =
-  () => showLogin();
+  showLogin;
 
-/* =========================
-   CRIAR CONTA
-========================= */
 
-$('signupForm')
-  .addEventListener(
-    'submit',
-    async event => {
+$('signupForm').addEventListener(
+  'submit',
+  async event => {
 
-      event.preventDefault();
+    event.preventDefault();
 
-      clearMsg(
-        $('signupMessage')
-      );
+    clearMsg(
+      $('signupMessage')
+    );
 
-      $('signupButton').disabled =
-        true;
+    $('signupButton').disabled =
+      true;
 
-      const name =
-        $('signupName')
-          .value
-          .trim();
+    const name =
+      $('signupName')
+        .value
+        .trim();
 
-      const email =
-        $('signupEmail')
-          .value
-          .trim()
-          .toLowerCase();
+    const email =
+      $('signupEmail')
+        .value
+        .trim()
+        .toLowerCase();
 
-      const password =
-        $('signupPassword')
-          .value;
+    const password =
+      $('signupPassword')
+        .value;
 
-      const code =
-        $('signupCode')
-          .value
-          .trim()
-          .toUpperCase();
+    const code =
+      $('signupCode')
+        .value
+        .trim()
+        .toUpperCase();
 
-      try {
+    try {
 
-        const {
-          data,
-          error
-        } =
-          await client.auth.signUp({
-            email,
-            password,
+      const {
+        data,
+        error
+      } = await client.auth.signUp({
 
-            options: {
+        email,
+        password,
 
-              data: {
-                full_name: name
-              }
-
-            }
-          });
-
-        if (error) {
-          throw error;
+        options: {
+          data: {
+            full_name:name
+          }
         }
 
-        /*
-          Se confirmação de e-mail estiver desativada,
-          o Supabase já devolve uma sessão.
-        */
+      });
 
-        if (
-          data.session &&
-          data.user
-        ) {
+      if (error) {
+        throw error;
+      }
 
-          currentUser =
-            data.user;
+      if (
+        data.session &&
+        data.user
+      ) {
 
-          $('signupView')
-            .classList
-            .add('hidden');
+        currentUser =
+          data.user;
 
-          $('acceptView')
-            .classList
-            .remove('hidden');
+        $('signupView')
+          .classList
+          .add('hidden');
 
-          $('acceptCode').value =
-            code;
+        $('acceptView')
+          .classList
+          .remove('hidden');
 
-          msg(
-            $('acceptMessage'),
-            'Conta criada. Agora conclua o vínculo com seu apartamento.',
-            'success'
-          );
+        $('acceptCode').value =
+          code;
 
-        } else {
+        msg(
+          $('acceptMessage'),
+          'Conta criada. Agora conclua o vínculo com seu apartamento.',
+          'success'
+        );
 
-          /*
-            Se confirmação de e-mail estiver habilitada,
-            guardamos o convite no navegador.
-          */
+      } else {
 
-          localStorage.setItem(
-            'jacaranda_pending_invite',
-            code
-          );
-
-          msg(
-            $('signupMessage'),
-            'Conta criada. Verifique seu e-mail para confirmar o cadastro. Depois entre normalmente para concluir o vínculo do apartamento.',
-            'success'
-          );
-        }
-
-      } catch (error) {
-
-        console.error(error);
+        localStorage.setItem(
+          'jacaranda_pending_invite',
+          code
+        );
 
         msg(
           $('signupMessage'),
-          error.message ||
-          'Não foi possível criar a conta.'
+          'Conta criada. Verifique seu e-mail e depois entre normalmente para concluir o vínculo.',
+          'success'
         );
-
-      } finally {
-
-        $('signupButton').disabled =
-          false;
       }
 
+    } catch (error) {
+
+      console.error(error);
+
+      msg(
+        $('signupMessage'),
+        error.message ||
+        'Não foi possível criar a conta.'
+      );
+
+    } finally {
+
+      $('signupButton').disabled =
+        false;
     }
-  );
+  }
+);
+
 
 /* =========================
    ACEITAR CONVITE
 ========================= */
 
-$('acceptForm')
-  .addEventListener(
-    'submit',
-    async event => {
+$('acceptForm').addEventListener(
+  'submit',
+  async event => {
 
-      event.preventDefault();
+    event.preventDefault();
 
-      clearMsg(
-        $('acceptMessage')
+    clearMsg(
+      $('acceptMessage')
+    );
+
+    $('acceptButton').disabled =
+      true;
+
+    const code =
+      $('acceptCode')
+        .value
+        .trim()
+        .toUpperCase();
+
+    try {
+
+      const {
+        data,
+        error
+      } = await client.rpc(
+        'accept_resident_invite',
+        {
+          p_code:code
+        }
       );
 
-      $('acceptButton').disabled =
-        true;
-
-      const code =
-        $('acceptCode')
-          .value
-          .trim()
-          .toUpperCase();
-
-      try {
-
-        const {
-          data,
-          error
-        } =
-          await client.rpc(
-            'accept_resident_invite',
-            {
-              p_code: code
-            }
-          );
-
-        if (error) {
-          throw error;
-        }
-
-        localStorage.removeItem(
-          'jacaranda_pending_invite'
-        );
-
-        msg(
-          $('acceptMessage'),
-          `Apartamento ${data?.apartment || ''} vinculado com sucesso.`,
-          'success'
-        );
-
-        const {
-          data: sessionData
-        } =
-          await client.auth
-            .getSession();
-
-        if (
-          sessionData.session?.user
-        ) {
-
-          setTimeout(
-            () =>
-              loadPortal(
-                sessionData.session.user
-              ),
-            700
-          );
-        }
-
-      } catch (error) {
-
-        console.error(error);
-
-        msg(
-          $('acceptMessage'),
-          error.message ||
-          'Não foi possível aceitar o convite.'
-        );
-
-      } finally {
-
-        $('acceptButton').disabled =
-          false;
+      if (error) {
+        throw error;
       }
 
+      localStorage.removeItem(
+        'jacaranda_pending_invite'
+      );
+
+      msg(
+        $('acceptMessage'),
+        `Apartamento ${data?.apartment || ''} vinculado com sucesso.`,
+        'success'
+      );
+
+      const {
+        data: sessionData
+      } = await client.auth
+        .getSession();
+
+      if (
+        sessionData.session?.user
+      ) {
+
+        setTimeout(
+          () => loadPortal(
+            sessionData.session.user
+          ),
+          600
+        );
+      }
+
+    } catch (error) {
+
+      console.error(error);
+
+      msg(
+        $('acceptMessage'),
+        error.message ||
+        'Não foi possível aceitar o convite.'
+      );
+
+    } finally {
+
+      $('acceptButton').disabled =
+        false;
     }
-  );
+  }
+);
+
 
 /* =========================
    LOGOUT
@@ -1832,27 +1884,3032 @@ $('logoutButton').onclick =
     currentProfile = null;
     currentUser = null;
     currentApartment = null;
+    currentModule = null;
 
     showLogin();
   };
 
-/* =========================
-   HOME
-========================= */
-
 $('homeButton').onclick =
   showHome;
+
+
+/* =========================
+   DASHBOARD
+========================= */
+
+async function refreshDashboard() {
+
+  if (!currentUser) {
+    return;
+  }
+
+  try {
+
+    const {
+      data,
+      error
+    } = await client.rpc(
+      'get_dashboard_counts'
+    );
+
+    if (!error && data) {
+
+      $('countNotices').textContent =
+        data.notices ?? 0;
+
+      $('countRequests').textContent =
+        data.requests ?? 0;
+
+      $('countEvents').textContent =
+        data.events ?? 0;
+
+      $('countCleaning').textContent =
+        data.cleaning ?? 0;
+
+      $('countMaintenance').textContent =
+        data.maintenance ?? 0;
+
+      $('countGoals').textContent =
+        data.goals ?? 0;
+
+      $('countDocuments').textContent =
+        data.documents ?? 0;
+
+      $('countResidents').textContent =
+        data.residents ?? 0;
+
+      const notificationCount =
+        Number(
+          data.notifications || 0
+        );
+
+      $('notificationBadge')
+        .textContent =
+          notificationCount;
+
+      $('notificationBadge')
+        .classList
+        .toggle(
+          'hidden',
+          notificationCount === 0
+        );
+    }
+
+    await loadLatestNotice();
+
+  } catch (error) {
+
+    console.error(
+      'Dashboard:',
+      error
+    );
+  }
+}
+
+
+async function loadLatestNotice() {
+
+  try {
+
+    const {
+      data,
+      error
+    } = await client
+      .from('notices')
+      .select('*')
+      .eq('status','publicado')
+      .order(
+        'created_at',
+        {
+          ascending:false
+        }
+      )
+      .limit(1);
+
+    if (
+      error ||
+      !data?.length
+    ) {
+
+      $('latestNotice').innerHTML =
+        `
+          <div style="font-size:24px">
+            📢
+          </div>
+
+          <div>
+            <strong>
+              Bem-vindo ao Portal do Jacarandá II
+            </strong>
+
+            <p class="muted" style="margin-top:4px">
+              Os comunicados do condomínio aparecerão aqui.
+            </p>
+          </div>
+        `;
+
+      return;
+    }
+
+    const notice =
+      data[0];
+
+    $('latestNotice').innerHTML =
+      `
+        <div style="font-size:24px">
+          📢
+        </div>
+
+        <div>
+          <strong>
+            ${esc(notice.title)}
+          </strong>
+
+          <p class="muted" style="margin-top:4px">
+            ${esc(notice.content)}
+          </p>
+
+          ${pill(notice.priority)}
+        </div>
+      `;
+
+  } catch (error) {
+
+    console.error(error);
+  }
+}
+
+
+/* =========================
+   CARDS
+========================= */
+
+document
+  .querySelectorAll(
+    '[data-module]'
+  )
+  .forEach(
+    card => {
+
+      card.onclick =
+        () => openModule(
+          card.dataset.module
+        );
+    }
+  );
+
+$('residentsCard').onclick =
+  showResidents;
+
+
+/* =========================
+   CONFIGURAÇÃO DOS MÓDULOS
+========================= */
+
+const modules = {
+
+  notices:{
+    title:'📢 Avisos',
+    subtitle:
+      'Comunicados importantes do condomínio.',
+    table:'notices'
+  },
+
+  requests:{
+    title:'📝 Solicitações',
+    subtitle:
+      'Abra e acompanhe solicitações.',
+    table:'requests'
+  },
+
+  events:{
+    title:'📅 Agenda',
+    subtitle:
+      'Eventos, reformas, visitas e serviços.',
+    table:'events'
+  },
+
+  cleaning:{
+    title:'🧹 Limpeza',
+    subtitle:
+      'Programação das áreas comuns.',
+    table:'cleaning_tasks'
+  },
+
+  maintenance:{
+    title:'🔧 Manutenções',
+    subtitle:
+      'Manutenções preventivas e corretivas.',
+    table:'maintenance_tasks'
+  },
+
+  goals:{
+    title:'🎯 Metas',
+    subtitle:
+      'Projetos e melhorias do condomínio.',
+    table:'goals'
+  },
+
+  documents:{
+    title:'📁 Documentos',
+    subtitle:
+      'Arquivos e documentos importantes.',
+    table:'documents'
+  }
+
+};
+
+
+/* =========================
+   ABRIR MÓDULO
+========================= */
+
+async function openModule(name) {
+
+  currentModule =
+    name;
+
+  hideViews();
+
+  $('moduleView')
+    .classList
+    .remove('hidden');
+
+  const config =
+    modules[name];
+
+  $('moduleTitle').textContent =
+    config.title;
+
+  $('moduleSubtitle').textContent =
+    config.subtitle;
+
+  /*
+    Solicitação:
+    todos os usuários podem criar.
+
+    Outros módulos:
+    somente admin cria.
+  */
+
+  const canCreate =
+    name === 'requests' ||
+    isAdmin();
+
+  $('moduleNewButton')
+    .classList
+    .toggle(
+      'hidden',
+      !canCreate
+    );
+
+  $('moduleNewButton').textContent =
+    name === 'requests'
+      ? '+ Nova solicitação'
+      : '+ Novo';
+
+  await loadModule();
+
+  window.scrollTo({
+    top:0,
+    behavior:'smooth'
+  });
+}
+
+
+$('moduleNewButton').onclick =
+  () => {
+
+    switch (
+      currentModule
+    ) {
+
+      case 'notices':
+        noticeForm();
+        break;
+
+      case 'requests':
+        requestForm();
+        break;
+
+      case 'events':
+        eventForm();
+        break;
+
+      case 'cleaning':
+        cleaningForm();
+        break;
+
+      case 'maintenance':
+        maintenanceForm();
+        break;
+
+      case 'goals':
+        goalForm();
+        break;
+
+      case 'documents':
+        documentForm();
+        break;
+    }
+  };
+
+
+/* =========================
+   CARREGAR MÓDULO
+========================= */
+
+async function loadModule() {
+
+  $('moduleList').innerHTML =
+    `
+      <div class="loading">
+        Carregando...
+      </div>
+    `;
+
+  try {
+
+    switch (
+      currentModule
+    ) {
+
+      case 'notices':
+        await loadNotices();
+        break;
+
+      case 'requests':
+        await loadRequests();
+        break;
+
+      case 'events':
+        await loadEvents();
+        break;
+
+      case 'cleaning':
+        await loadCleaning();
+        break;
+
+      case 'maintenance':
+        await loadMaintenance();
+        break;
+
+      case 'goals':
+        await loadGoals();
+        break;
+
+      case 'documents':
+        await loadDocuments();
+        break;
+    }
+
+  } catch (error) {
+
+    console.error(error);
+
+    $('moduleList').innerHTML =
+      `
+        <div class="empty">
+          Não foi possível carregar este módulo.
+          <br>
+          ${esc(error.message || '')}
+        </div>
+      `;
+  }
+}
+
+
+/* =========================
+   AVISOS
+========================= */
+
+async function loadNotices() {
+
+  const {
+    data,
+    error
+  } = await client
+    .from('notices')
+    .select('*')
+    .order(
+      'created_at',
+      {
+        ascending:false
+      }
+    );
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data?.length) {
+
+    $('moduleList').innerHTML =
+      `
+        <div class="empty">
+          Nenhum aviso cadastrado.
+        </div>
+      `;
+
+    return;
+  }
+
+  $('moduleList').innerHTML =
+    '';
+
+  data.forEach(
+    item => {
+
+      const div =
+        document.createElement(
+          'div'
+        );
+
+      div.className =
+        'list-item';
+
+      div.innerHTML =
+        `
+          <div class="list-top">
+
+            <div>
+
+              <h4>
+                ${esc(item.title)}
+              </h4>
+
+              <p>
+                ${esc(item.content)}
+              </p>
+
+              <div class="meta">
+                ${pill(item.priority)}
+                ${pill(item.status)}
+              </div>
+
+            </div>
+
+            ${
+              isAdmin()
+                ? `
+                    <div class="actions">
+
+                      <button
+                        class="btn btn-secondary btn-small edit"
+                      >
+                        Editar
+                      </button>
+
+                      <button
+                        class="btn btn-danger btn-small delete"
+                      >
+                        Excluir
+                      </button>
+
+                    </div>
+                  `
+                : ''
+            }
+
+          </div>
+        `;
+
+      if (isAdmin()) {
+
+        div.querySelector(
+          '.edit'
+        ).onclick =
+          () => noticeForm(
+            item
+          );
+
+        div.querySelector(
+          '.delete'
+        ).onclick =
+          () => deleteRecord(
+            'notices',
+            item.id
+          );
+      }
+
+      $('moduleList')
+        .appendChild(div);
+    }
+  );
+}
+
+
+function noticeForm(
+  item = {}
+) {
+
+  openModal(
+    item.id
+      ? 'Editar aviso'
+      : 'Novo aviso',
+
+    'Comunicado do condomínio.',
+
+    `
+      <form id="recordForm">
+
+        <div class="form-grid">
+
+          <div class="field full">
+            <label>Título</label>
+            <input
+              id="fTitle"
+              value="${esc(item.title || '')}"
+              required
+            >
+          </div>
+
+          ${textarea(
+            'fDescription',
+            'Comunicado',
+            item.content || ''
+          )}
+
+          ${sel(
+            'fPriority',
+            'Prioridade',
+            [
+              ['baixa','Baixa'],
+              ['normal','Normal'],
+              ['alta','Alta'],
+              ['urgente','Urgente']
+            ],
+            item.priority || 'normal'
+          )}
+
+          ${sel(
+            'fStatus',
+            'Status',
+            [
+              ['rascunho','Rascunho'],
+              ['publicado','Publicado'],
+              ['arquivado','Arquivado']
+            ],
+            item.status || 'publicado'
+          )}
+
+          ${input(
+            'fPublish',
+            'Publicar em',
+            'datetime-local'
+          )}
+
+          ${input(
+            'fExpires',
+            'Expira em',
+            'datetime-local'
+          )}
+
+        </div>
+
+        <button class="btn btn-primary">
+          Salvar aviso
+        </button>
+
+        <div
+          id="recordMessage"
+          class="message"
+        ></div>
+
+      </form>
+    `
+  );
+
+  $('recordForm').onsubmit =
+    async event => {
+
+      event.preventDefault();
+
+      const payload = {
+
+        title:
+          v('fTitle'),
+
+        content:
+          v('fDescription'),
+
+        priority:
+          v('fPriority'),
+
+        status:
+          v('fStatus'),
+
+        publish_at:
+          v('fPublish')
+            ? new Date(
+                v('fPublish')
+              ).toISOString()
+            : null,
+
+        expires_at:
+          v('fExpires')
+            ? new Date(
+                v('fExpires')
+              ).toISOString()
+            : null
+      };
+
+      if (!item.id) {
+
+        payload.created_by =
+          currentUser.id;
+      }
+
+      await saveRecord(
+        'notices',
+        item.id,
+        payload
+      );
+    };
+}
+
+
+/* =========================
+   SOLICITAÇÕES
+========================= */
+
+async function loadRequests() {
+
+  const {
+    data,
+    error
+  } = await client
+    .from('requests')
+    .select(`
+      *,
+      apartments (
+        number
+      )
+    `)
+    .order(
+      'created_at',
+      {
+        ascending:false
+      }
+    );
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data?.length) {
+
+    $('moduleList').innerHTML =
+      `
+        <div class="empty">
+          Nenhuma solicitação cadastrada.
+        </div>
+      `;
+
+    return;
+  }
+
+  $('moduleList').innerHTML =
+    '';
+
+  data.forEach(
+    item => {
+
+      const div =
+        document.createElement(
+          'div'
+        );
+
+      div.className =
+        'list-item';
+
+      div.innerHTML =
+        `
+          <div class="list-top">
+
+            <div>
+
+              <h4>
+                ${esc(item.title)}
+              </h4>
+
+              <p>
+                ${
+                  item.apartments?.number
+                    ? `Apartamento ${esc(item.apartments.number)} • `
+                    : ''
+                }
+
+                ${esc(item.category)}
+
+                <br>
+
+                ${esc(item.description)}
+
+                <br>
+
+                Aberta em
+                ${esc(
+                  dateBR(
+                    item.created_at
+                  )
+                )}
+              </p>
+
+              <div class="meta">
+                ${pill(item.priority)}
+                ${pill(item.status)}
+              </div>
+
+            </div>
+
+            <div class="actions">
+
+              <button
+                class="btn btn-secondary btn-small open"
+              >
+                Abrir
+              </button>
+
+              ${
+                isAdmin()
+                  ? `
+                      <button
+                        class="btn btn-danger btn-small delete"
+                      >
+                        Excluir
+                      </button>
+                    `
+                  : ''
+              }
+
+            </div>
+
+          </div>
+        `;
+
+      div.querySelector(
+        '.open'
+      ).onclick =
+        () => openRequest(
+          item
+        );
+
+      if (isAdmin()) {
+
+        div.querySelector(
+          '.delete'
+        ).onclick =
+          () => deleteRecord(
+            'requests',
+            item.id
+          );
+      }
+
+      $('moduleList')
+        .appendChild(div);
+    }
+  );
+}
+
+
+async function requestForm() {
+
+  const {
+    data: apartments,
+    error
+  } = await client.rpc(
+    'get_my_apartments'
+  );
+
+  if (error) {
+
+    alert(
+      error.message
+    );
+
+    return;
+  }
+
+  /*
+    Admin pode não estar vinculado ainda.
+    Se for admin, carregamos também todos os apartamentos.
+  */
+
+  let available =
+    apartments || [];
+
+  if (
+    isAdmin() &&
+    available.length === 0
+  ) {
+
+    const result =
+      await client
+        .from('apartments')
+        .select(
+          'id,number,floor'
+        )
+        .eq(
+          'active',
+          true
+        )
+        .order('number');
+
+    if (result.error) {
+
+      alert(
+        result.error.message
+      );
+
+      return;
+    }
+
+    available =
+      (result.data || [])
+        .map(
+          apartment => ({
+            apartment_id:
+              apartment.id,
+
+            apartment_number:
+              apartment.number,
+
+            floor:
+              apartment.floor
+          })
+        );
+  }
+
+  if (!available.length) {
+
+    alert(
+      'Sua conta ainda não está vinculada a um apartamento.'
+    );
+
+    return;
+  }
+
+  openModal(
+    'Nova solicitação',
+    'Envie uma solicitação para a administração.',
+
+    `
+      <form id="recordForm">
+
+        <div class="form-grid">
+
+          <div class="field">
+
+            <label>
+              Apartamento
+            </label>
+
+            <select id="fApartment">
+
+              ${available.map(
+                apartment => `
+                  <option
+                    value="${apartment.apartment_id}"
+                  >
+                    Apartamento
+                    ${esc(apartment.apartment_number)}
+                  </option>
+                `
+              ).join('')}
+
+            </select>
+
+          </div>
+
+          <div class="field">
+
+            <label>
+              Categoria
+            </label>
+
+            <select id="fCategory">
+              <option value="geral">Geral</option>
+              <option value="manutencao">Manutenção</option>
+              <option value="limpeza">Limpeza</option>
+              <option value="seguranca">Segurança</option>
+              <option value="barulho">Barulho</option>
+              <option value="administrativo">Administrativo</option>
+              <option value="outro">Outro</option>
+            </select>
+
+          </div>
+
+          <div class="field full">
+            <label>Título</label>
+            <input id="fTitle" required>
+          </div>
+
+          ${textarea(
+            'fDescription',
+            'Descrição'
+          )}
+
+          ${sel(
+            'fPriority',
+            'Prioridade',
+            [
+              ['baixa','Baixa'],
+              ['normal','Normal'],
+              ['alta','Alta'],
+              ['urgente','Urgente']
+            ],
+            'normal'
+          )}
+
+        </div>
+
+        <button class="btn btn-primary">
+          Enviar solicitação
+        </button>
+
+        <div
+          id="recordMessage"
+          class="message"
+        ></div>
+
+      </form>
+    `
+  );
+
+  $('recordForm').onsubmit =
+    async event => {
+
+      event.preventDefault();
+
+      const payload = {
+
+        apartment_id:
+          Number(
+            v('fApartment')
+          ),
+
+        created_by:
+          currentUser.id,
+
+        category:
+          v('fCategory'),
+
+        title:
+          v('fTitle'),
+
+        description:
+          v('fDescription'),
+
+        priority:
+          v('fPriority'),
+
+        status:'aberta'
+      };
+
+      await saveRecord(
+        'requests',
+        null,
+        payload
+      );
+    };
+}
+
+
+async function openRequest(
+  request
+) {
+
+  const {
+    data: messages,
+    error
+  } = await client
+    .from('request_messages')
+    .select('*')
+    .eq(
+      'request_id',
+      request.id
+    )
+    .order('created_at');
+
+  if (error) {
+
+    alert(
+      error.message
+    );
+
+    return;
+  }
+
+  openModal(
+    request.title,
+    `Solicitação • ${request.status.replaceAll('_',' ')}`,
+
+    `
+      <p class="muted">
+        ${esc(request.description)}
+      </p>
+
+      <div class="meta">
+        ${pill(request.priority)}
+        ${pill(request.status)}
+      </div>
+
+      ${
+        isAdmin()
+          ? `
+              <div
+                class="field"
+                style="margin-top:18px"
+              >
+
+                <label>
+                  Status
+                </label>
+
+                <select id="requestStatus">
+
+                  ${[
+                    ['aberta','Aberta'],
+                    ['em_analise','Em análise'],
+                    ['em_andamento','Em andamento'],
+                    ['aguardando_morador','Aguardando morador'],
+                    ['concluida','Concluída'],
+                    ['cancelada','Cancelada']
+                  ].map(
+                    option => `
+                      <option
+                        value="${option[0]}"
+                        ${
+                          request.status === option[0]
+                            ? 'selected'
+                            : ''
+                        }
+                      >
+                        ${option[1]}
+                      </option>
+                    `
+                  ).join('')}
+
+                </select>
+
+              </div>
+
+              <button
+                id="saveRequestStatus"
+                class="btn btn-secondary btn-small"
+              >
+                Atualizar status
+              </button>
+            `
+          : ''
+      }
+
+      <div class="section-title">
+        Conversa
+      </div>
+
+      <div class="request-thread">
+
+        ${
+          messages?.length
+            ? messages.map(
+                message => `
+                  <div class="bubble ${
+                    message.user_id === currentUser.id
+                      ? 'me'
+                      : ''
+                  }">
+
+                    ${esc(message.message)}
+
+                    <div
+                      class="muted"
+                      style="margin-top:5px"
+                    >
+                      ${esc(
+                        dateBR(
+                          message.created_at
+                        )
+                      )}
+                    </div>
+
+                  </div>
+                `
+              ).join('')
+            : `
+                <div class="empty">
+                  Nenhuma mensagem ainda.
+                </div>
+              `
+        }
+
+      </div>
+
+      ${
+        ![
+          'concluida',
+          'cancelada'
+        ].includes(request.status)
+          ? `
+              <form id="messageForm">
+
+                <div class="field">
+                  <label>Nova mensagem</label>
+                  <textarea
+                    id="requestMessage"
+                    required
+                  ></textarea>
+                </div>
+
+                <button class="btn btn-primary">
+                  Enviar mensagem
+                </button>
+
+              </form>
+            `
+          : ''
+      }
+    `
+  );
+
+  if (
+    isAdmin() &&
+    $('saveRequestStatus')
+  ) {
+
+    $('saveRequestStatus').onclick =
+      async () => {
+
+        const status =
+          v('requestStatus');
+
+        const payload = {
+          status
+        };
+
+        if (
+          status === 'concluida'
+        ) {
+
+          payload.closed_at =
+            new Date()
+              .toISOString();
+
+        } else {
+
+          payload.closed_at =
+            null;
+        }
+
+        const {
+          error
+        } = await client
+          .from('requests')
+          .update(payload)
+          .eq(
+            'id',
+            request.id
+          );
+
+        if (error) {
+
+          alert(
+            error.message
+          );
+
+          return;
+        }
+
+        request.status =
+          status;
+
+        closeModal(
+          'genericModal'
+        );
+
+        await loadRequests();
+        await refreshDashboard();
+      };
+  }
+
+  if ($('messageForm')) {
+
+    $('messageForm').onsubmit =
+      async event => {
+
+        event.preventDefault();
+
+        const message =
+          v('requestMessage');
+
+        if (!message) {
+          return;
+        }
+
+        const {
+          error
+        } = await client
+          .from('request_messages')
+          .insert({
+
+            request_id:
+              request.id,
+
+            user_id:
+              currentUser.id,
+
+            message
+          });
+
+        if (error) {
+
+          alert(
+            error.message
+          );
+
+          return;
+        }
+
+        await openRequest(
+          request
+        );
+      };
+  }
+}
+
+
+/* =========================
+   AGENDA
+========================= */
+
+async function loadEvents() {
+
+  const {
+    data,
+    error
+  } = await client
+    .from('events')
+    .select('*')
+    .order(
+      'starts_at',
+      {
+        ascending:true
+      }
+    );
+
+  if (error) {
+    throw error;
+  }
+
+  renderStandardList(
+    data,
+    item => `
+
+      <h4>
+        ${esc(item.title)}
+      </h4>
+
+      <p>
+
+        ${esc(item.description || '')}
+
+        ${
+          item.location
+            ? `<br>📍 ${esc(item.location)}`
+            : ''
+        }
+
+        <br>
+
+        📅 ${esc(dateBR(item.starts_at))}
+
+        ${
+          item.ends_at
+            ? ` até ${esc(dateBR(item.ends_at))}`
+            : ''
+        }
+
+      </p>
+
+      <div class="meta">
+        ${pill(item.status)}
+
+        <span class="pill gray">
+          ${esc(item.event_type)}
+        </span>
+      </div>
+    `,
+
+    item => eventForm(item),
+
+    'events'
+  );
+}
+
+
+function eventForm(
+  item = {}
+) {
+
+  openModal(
+    item.id
+      ? 'Editar evento'
+      : 'Novo evento',
+
+    'Agenda do condomínio.',
+
+    `
+      <form id="recordForm">
+
+        <div class="form-grid">
+
+          <div class="field full">
+            <label>Título</label>
+            <input
+              id="fTitle"
+              value="${esc(item.title || '')}"
+              required
+            >
+          </div>
+
+          ${textarea(
+            'fDescription',
+            'Descrição',
+            item.description || ''
+          )}
+
+          ${input(
+            'fLocation',
+            'Local',
+            'text',
+            item.location || ''
+          )}
+
+          ${input(
+            'fType',
+            'Tipo',
+            'text',
+            item.event_type || 'geral'
+          )}
+
+          ${input(
+            'fStart',
+            'Início',
+            'datetime-local'
+          )}
+
+          ${input(
+            'fEnd',
+            'Término',
+            'datetime-local'
+          )}
+
+          ${sel(
+            'fStatus',
+            'Status',
+            [
+              ['agendado','Agendado'],
+              ['em_andamento','Em andamento'],
+              ['concluido','Concluído'],
+              ['cancelado','Cancelado']
+            ],
+            item.status || 'agendado'
+          )}
+
+        </div>
+
+        <button class="btn btn-primary">
+          Salvar
+        </button>
+
+        <div
+          id="recordMessage"
+          class="message"
+        ></div>
+
+      </form>
+    `
+  );
+
+  setDateTimeValue(
+    'fStart',
+    item.starts_at
+  );
+
+  setDateTimeValue(
+    'fEnd',
+    item.ends_at
+  );
+
+  $('recordForm').onsubmit =
+    async event => {
+
+      event.preventDefault();
+
+      if (!v('fStart')) {
+
+        msg(
+          $('recordMessage'),
+          'Informe a data e hora de início.'
+        );
+
+        return;
+      }
+
+      const payload = {
+
+        title:
+          v('fTitle'),
+
+        description:
+          v('fDescription') || null,
+
+        location:
+          v('fLocation') || null,
+
+        event_type:
+          v('fType') || 'geral',
+
+        starts_at:
+          new Date(
+            v('fStart')
+          ).toISOString(),
+
+        ends_at:
+          v('fEnd')
+            ? new Date(
+                v('fEnd')
+              ).toISOString()
+            : null,
+
+        status:
+          v('fStatus')
+      };
+
+      if (!item.id) {
+
+        payload.created_by =
+          currentUser.id;
+      }
+
+      await saveRecord(
+        'events',
+        item.id,
+        payload
+      );
+    };
+}
+
+
+/* =========================
+   LIMPEZA
+========================= */
+
+async function loadCleaning() {
+
+  const {
+    data,
+    error
+  } = await client
+    .from('cleaning_tasks')
+    .select('*')
+    .order(
+      'scheduled_for',
+      {
+        ascending:true
+      }
+    );
+
+  if (error) {
+    throw error;
+  }
+
+  renderStandardList(
+    data,
+
+    item => `
+
+      <h4>
+        🧹 ${esc(item.area)}
+      </h4>
+
+      <p>
+
+        ${esc(item.activity)}
+
+        ${
+          item.responsible
+            ? `<br>Responsável: ${esc(item.responsible)}`
+            : ''
+        }
+
+        <br>
+
+        📅 ${esc(dateBR(item.scheduled_for))}
+
+        ${
+          item.notes
+            ? `<br>${esc(item.notes)}`
+            : ''
+        }
+
+      </p>
+
+      <div class="meta">
+        ${pill(item.status)}
+      </div>
+    `,
+
+    item => cleaningForm(item),
+
+    'cleaning_tasks'
+  );
+}
+
+
+function cleaningForm(
+  item = {}
+) {
+
+  openModal(
+    item.id
+      ? 'Editar limpeza'
+      : 'Nova programação de limpeza',
+
+    'Programação das áreas comuns.',
+
+    `
+      <form id="recordForm">
+
+        <div class="form-grid">
+
+          ${input(
+            'fArea',
+            'Área',
+            'text',
+            item.area || '',
+            'required'
+          )}
+
+          ${input(
+            'fResponsible',
+            'Responsável',
+            'text',
+            item.responsible || ''
+          )}
+
+          <div class="field full">
+            <label>Atividade</label>
+            <input
+              id="fActivity"
+              value="${esc(item.activity || '')}"
+              required
+            >
+          </div>
+
+          ${input(
+            'fScheduled',
+            'Data e hora',
+            'datetime-local'
+          )}
+
+          ${sel(
+            'fStatus',
+            'Status',
+            [
+              ['programada','Programada'],
+              ['em_andamento','Em andamento'],
+              ['concluida','Concluída'],
+              ['cancelada','Cancelada']
+            ],
+            item.status || 'programada'
+          )}
+
+          ${textarea(
+            'fNotes',
+            'Observações',
+            item.notes || ''
+          )}
+
+        </div>
+
+        <button class="btn btn-primary">
+          Salvar
+        </button>
+
+        <div
+          id="recordMessage"
+          class="message"
+        ></div>
+
+      </form>
+    `
+  );
+
+  setDateTimeValue(
+    'fScheduled',
+    item.scheduled_for
+  );
+
+  $('recordForm').onsubmit =
+    async event => {
+
+      event.preventDefault();
+
+      if (!v('fScheduled')) {
+
+        msg(
+          $('recordMessage'),
+          'Informe a data da limpeza.'
+        );
+
+        return;
+      }
+
+      const payload = {
+
+        area:
+          v('fArea'),
+
+        activity:
+          v('fActivity'),
+
+        scheduled_for:
+          new Date(
+            v('fScheduled')
+          ).toISOString(),
+
+        responsible:
+          v('fResponsible') || null,
+
+        notes:
+          v('fNotes') || null,
+
+        status:
+          v('fStatus')
+      };
+
+      if (!item.id) {
+
+        payload.created_by =
+          currentUser.id;
+      }
+
+      await saveRecord(
+        'cleaning_tasks',
+        item.id,
+        payload
+      );
+    };
+}
+
+
+/* =========================
+   MANUTENÇÕES
+========================= */
+
+async function loadMaintenance() {
+
+  const {
+    data,
+    error
+  } = await client
+    .from('maintenance_tasks')
+    .select('*')
+    .order(
+      'created_at',
+      {
+        ascending:false
+      }
+    );
+
+  if (error) {
+    throw error;
+  }
+
+  renderStandardList(
+    data,
+
+    item => `
+
+      <h4>
+        🔧 ${esc(item.title)}
+      </h4>
+
+      <p>
+
+        ${esc(item.description || '')}
+
+        ${
+          item.location
+            ? `<br>Local: ${esc(item.location)}`
+            : ''
+        }
+
+        ${
+          item.responsible
+            ? `<br>Responsável: ${esc(item.responsible)}`
+            : ''
+        }
+
+        ${
+          item.scheduled_for
+            ? `<br>📅 ${esc(dateBR(item.scheduled_for))}`
+            : ''
+        }
+
+      </p>
+
+      <div class="meta">
+
+        <span class="pill gray">
+          ${esc(item.maintenance_type)}
+        </span>
+
+        ${pill(item.priority)}
+        ${pill(item.status)}
+
+      </div>
+    `,
+
+    item => maintenanceForm(
+      item
+    ),
+
+    'maintenance_tasks'
+  );
+}
+
+
+function maintenanceForm(
+  item = {}
+) {
+
+  openModal(
+    item.id
+      ? 'Editar manutenção'
+      : 'Nova manutenção',
+
+    'Controle de manutenção preventiva e corretiva.',
+
+    `
+      <form id="recordForm">
+
+        <div class="form-grid">
+
+          <div class="field full">
+            <label>Título</label>
+            <input
+              id="fTitle"
+              value="${esc(item.title || '')}"
+              required
+            >
+          </div>
+
+          ${textarea(
+            'fDescription',
+            'Descrição',
+            item.description || ''
+          )}
+
+          ${input(
+            'fLocation',
+            'Local',
+            'text',
+            item.location || ''
+          )}
+
+          ${input(
+            'fResponsible',
+            'Responsável',
+            'text',
+            item.responsible || ''
+          )}
+
+          ${sel(
+            'fType',
+            'Tipo',
+            [
+              ['preventiva','Preventiva'],
+              ['corretiva','Corretiva']
+            ],
+            item.maintenance_type || 'preventiva'
+          )}
+
+          ${sel(
+            'fPriority',
+            'Prioridade',
+            [
+              ['baixa','Baixa'],
+              ['normal','Normal'],
+              ['alta','Alta'],
+              ['urgente','Urgente']
+            ],
+            item.priority || 'normal'
+          )}
+
+          ${input(
+            'fScheduled',
+            'Programada para',
+            'datetime-local'
+          )}
+
+          ${sel(
+            'fStatus',
+            'Status',
+            [
+              ['aberta','Aberta'],
+              ['agendada','Agendada'],
+              ['em_andamento','Em andamento'],
+              ['concluida','Concluída'],
+              ['cancelada','Cancelada']
+            ],
+            item.status || 'aberta'
+          )}
+
+        </div>
+
+        <button class="btn btn-primary">
+          Salvar
+        </button>
+
+        <div
+          id="recordMessage"
+          class="message"
+        ></div>
+
+      </form>
+    `
+  );
+
+  setDateTimeValue(
+    'fScheduled',
+    item.scheduled_for
+  );
+
+  $('recordForm').onsubmit =
+    async event => {
+
+      event.preventDefault();
+
+      const status =
+        v('fStatus');
+
+      const payload = {
+
+        title:
+          v('fTitle'),
+
+        description:
+          v('fDescription') || null,
+
+        location:
+          v('fLocation') || null,
+
+        maintenance_type:
+          v('fType'),
+
+        priority:
+          v('fPriority'),
+
+        responsible:
+          v('fResponsible') || null,
+
+        scheduled_for:
+          v('fScheduled')
+            ? new Date(
+                v('fScheduled')
+              ).toISOString()
+            : null,
+
+        status,
+
+        completed_at:
+          status === 'concluida'
+            ? (
+                item.completed_at ||
+                new Date()
+                  .toISOString()
+              )
+            : null
+      };
+
+      if (!item.id) {
+
+        payload.created_by =
+          currentUser.id;
+      }
+
+      await saveRecord(
+        'maintenance_tasks',
+        item.id,
+        payload
+      );
+    };
+}
+
+
+/* =========================
+   METAS
+========================= */
+
+async function loadGoals() {
+
+  const {
+    data,
+    error
+  } = await client
+    .from('goals')
+    .select('*')
+    .order(
+      'created_at',
+      {
+        ascending:false
+      }
+    );
+
+  if (error) {
+    throw error;
+  }
+
+  renderStandardList(
+    data,
+
+    item => `
+
+      <h4>
+        🎯 ${esc(item.title)}
+      </h4>
+
+      <p>
+
+        ${esc(item.description || '')}
+
+        ${
+          item.target_date
+            ? `<br>Prazo: ${esc(dateOnlyBR(item.target_date))}`
+            : ''
+        }
+
+      </p>
+
+      <div class="progress">
+        <span
+          style="width:${Number(item.progress || 0)}%"
+        ></span>
+      </div>
+
+      <p style="margin-top:5px">
+        ${Number(item.progress || 0)}% concluído
+      </p>
+
+      <div class="meta">
+        ${pill(item.status)}
+      </div>
+    `,
+
+    item => goalForm(
+      item
+    ),
+
+    'goals'
+  );
+}
+
+
+function goalForm(
+  item = {}
+) {
+
+  openModal(
+    item.id
+      ? 'Editar meta'
+      : 'Nova meta',
+
+    'Projeto ou melhoria do condomínio.',
+
+    `
+      <form id="recordForm">
+
+        <div class="form-grid">
+
+          <div class="field full">
+            <label>Título</label>
+            <input
+              id="fTitle"
+              value="${esc(item.title || '')}"
+              required
+            >
+          </div>
+
+          ${textarea(
+            'fDescription',
+            'Descrição',
+            item.description || ''
+          )}
+
+          ${input(
+            'fProgress',
+            'Progresso (%)',
+            'number',
+            item.progress ?? 0
+          )}
+
+          ${input(
+            'fTarget',
+            'Prazo',
+            'date',
+            item.target_date || ''
+          )}
+
+          ${sel(
+            'fStatus',
+            'Status',
+            [
+              ['planejada','Planejada'],
+              ['em_andamento','Em andamento'],
+              ['concluida','Concluída'],
+              ['cancelada','Cancelada']
+            ],
+            item.status || 'planejada'
+          )}
+
+        </div>
+
+        <button class="btn btn-primary">
+          Salvar
+        </button>
+
+        <div
+          id="recordMessage"
+          class="message"
+        ></div>
+
+      </form>
+    `
+  );
+
+  $('recordForm').onsubmit =
+    async event => {
+
+      event.preventDefault();
+
+      const progress =
+        Math.max(
+          0,
+          Math.min(
+            100,
+            Number(
+              v('fProgress') || 0
+            )
+          )
+        );
+
+      const payload = {
+
+        title:
+          v('fTitle'),
+
+        description:
+          v('fDescription') || null,
+
+        progress,
+
+        target_date:
+          v('fTarget') || null,
+
+        status:
+          v('fStatus')
+      };
+
+      if (!item.id) {
+
+        payload.created_by =
+          currentUser.id;
+      }
+
+      await saveRecord(
+        'goals',
+        item.id,
+        payload
+      );
+    };
+}
+  /* =========================
+   DOCUMENTOS
+========================= */
+
+async function loadDocuments() {
+
+  const {
+    data,
+    error
+  } = await client
+    .from('documents')
+    .select('*')
+    .order(
+      'created_at',
+      {
+        ascending:false
+      }
+    );
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data?.length) {
+
+    $('moduleList').innerHTML =
+      `
+        <div class="empty">
+          Nenhum documento disponível.
+        </div>
+      `;
+
+    return;
+  }
+
+  $('moduleList').innerHTML = '';
+
+  for (const item of data) {
+
+    const div =
+      document.createElement('div');
+
+    div.className =
+      'list-item';
+
+    div.innerHTML =
+      `
+        <div class="list-top">
+
+          <div>
+
+            <h4>
+              📄 ${esc(item.title)}
+            </h4>
+
+            <p>
+
+              ${esc(item.description || '')}
+
+              <br>
+
+              Categoria:
+              ${esc(item.category || 'geral')}
+
+              ${
+                item.file_name
+                  ? `<br>Arquivo: ${esc(item.file_name)}`
+                  : ''
+              }
+
+              <br>
+
+              Publicado em:
+              ${esc(dateBR(item.created_at))}
+
+            </p>
+
+            <div class="meta">
+
+              ${pill(item.status)}
+
+              <span class="pill gray">
+                ${esc(item.visibility)}
+              </span>
+
+            </div>
+
+          </div>
+
+          <div class="actions">
+
+            ${
+              item.file_path
+                ? `
+                    <button
+                      class="btn btn-secondary btn-small download"
+                    >
+                      ⬇ Abrir
+                    </button>
+                  `
+                : ''
+            }
+
+            ${
+              isAdmin()
+                ? `
+                    <button
+                      class="btn btn-secondary btn-small edit"
+                    >
+                      Editar
+                    </button>
+
+                    <button
+                      class="btn btn-danger btn-small delete"
+                    >
+                      Excluir
+                    </button>
+                  `
+                : ''
+            }
+
+          </div>
+
+        </div>
+      `;
+
+    const download =
+      div.querySelector('.download');
+
+    if (download) {
+
+      download.onclick =
+        () => openDocumentFile(
+          item
+        );
+    }
+
+    if (isAdmin()) {
+
+      div.querySelector('.edit')
+        .onclick =
+          () => documentForm(
+            item
+          );
+
+      div.querySelector('.delete')
+        .onclick =
+          () => deleteDocument(
+            item
+          );
+    }
+
+    $('moduleList')
+      .appendChild(div);
+  }
+}
+
+
+function documentForm(
+  item = {}
+) {
+
+  openModal(
+    item.id
+      ? 'Editar documento'
+      : 'Novo documento',
+
+    'Envie arquivos para o portal do condomínio.',
+
+    `
+      <form id="recordForm">
+
+        <div class="form-grid">
+
+          <div class="field full">
+
+            <label>
+              Título
+            </label>
+
+            <input
+              id="fTitle"
+              value="${esc(item.title || '')}"
+              required
+            >
+
+          </div>
+
+          ${textarea(
+            'fDescription',
+            'Descrição',
+            item.description || ''
+          )}
+
+          ${input(
+            'fCategory',
+            'Categoria',
+            'text',
+            item.category || 'geral'
+          )}
+
+          ${sel(
+            'fVisibility',
+            'Visibilidade',
+            [
+              [
+                'moradores',
+                'Todos os moradores'
+              ],
+              [
+                'proprietarios',
+                'Somente proprietários'
+              ],
+              [
+                'admin',
+                'Somente administração'
+              ]
+            ],
+            item.visibility || 'moradores'
+          )}
+
+          ${sel(
+            'fStatus',
+            'Status',
+            [
+              [
+                'rascunho',
+                'Rascunho'
+              ],
+              [
+                'publicado',
+                'Publicado'
+              ],
+              [
+                'arquivado',
+                'Arquivado'
+              ]
+            ],
+            item.status || 'publicado'
+          )}
+
+          <div class="field full">
+
+            <label>
+              ${
+                item.id
+                  ? 'Substituir arquivo (opcional)'
+                  : 'Arquivo'
+              }
+            </label>
+
+            <input
+              id="fFile"
+              type="file"
+              ${
+                item.id
+                  ? ''
+                  : 'required'
+              }
+              accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx"
+            >
+
+            <p
+              class="muted"
+              style="margin-top:6px"
+            >
+              Limite: 10 MB.
+            </p>
+
+          </div>
+
+        </div>
+
+        <button
+          id="documentSaveButton"
+          class="btn btn-primary"
+        >
+          ${
+            item.id
+              ? 'Salvar alterações'
+              : 'Enviar documento'
+          }
+        </button>
+
+        <div
+          id="recordMessage"
+          class="message"
+        ></div>
+
+      </form>
+    `
+  );
+
+  $('recordForm').onsubmit =
+    async event => {
+
+      event.preventDefault();
+
+      clearMsg(
+        $('recordMessage')
+      );
+
+      const button =
+        $('documentSaveButton');
+
+      button.disabled = true;
+      button.textContent =
+        'Salvando...';
+
+      try {
+
+        const file =
+          $('fFile').files[0];
+
+        let filePath =
+          item.file_path || null;
+
+        let fileName =
+          item.file_name || null;
+
+        if (file) {
+
+          if (
+            file.size >
+            10 * 1024 * 1024
+          ) {
+
+            throw new Error(
+              'O arquivo deve ter no máximo 10 MB.'
+            );
+          }
+
+          const safeName =
+            file.name
+              .normalize('NFD')
+              .replace(
+                /[\u0300-\u036f]/g,
+                ''
+              )
+              .replace(
+                /[^a-zA-Z0-9._-]/g,
+                '_'
+              );
+
+          const newPath =
+            `${currentUser.id}/${Date.now()}-${safeName}`;
+
+          const upload =
+            await client.storage
+              .from('condo-documents')
+              .upload(
+                newPath,
+                file,
+                {
+                  cacheControl:'3600',
+                  upsert:false
+                }
+              );
+
+          if (upload.error) {
+            throw upload.error;
+          }
+
+          /*
+            Se estamos substituindo um arquivo,
+            removemos o antigo somente depois
+            do novo upload ter funcionado.
+          */
+
+          if (
+            item.file_path &&
+            item.file_path !== newPath
+          ) {
+
+            const removeOld =
+              await client.storage
+                .from('condo-documents')
+                .remove([
+                  item.file_path
+                ]);
+
+            if (removeOld.error) {
+
+              console.warn(
+                'Arquivo antigo não removido:',
+                removeOld.error
+              );
+            }
+          }
+
+          filePath =
+            newPath;
+
+          fileName =
+            file.name;
+        }
+
+        if (!filePath) {
+
+          throw new Error(
+            'Selecione um arquivo.'
+          );
+        }
+
+        const payload = {
+
+          title:
+            v('fTitle'),
+
+          description:
+            v('fDescription') || null,
+
+          category:
+            v('fCategory') || 'geral',
+
+          visibility:
+            v('fVisibility'),
+
+          status:
+            v('fStatus'),
+
+          file_name:
+            fileName,
+
+          file_path:
+            filePath,
+
+          /*
+            O bucket é privado.
+            Não armazenamos URL pública.
+          */
+
+          file_url:null
+        };
+
+        if (!item.id) {
+
+          payload.created_by =
+            currentUser.id;
+        }
+
+        let result;
+
+        if (item.id) {
+
+          result =
+            await client
+              .from('documents')
+              .update(payload)
+              .eq(
+                'id',
+                item.id
+              );
+
+        } else {
+
+          result =
+            await client
+              .from('documents')
+              .insert(payload);
+        }
+
+        if (result.error) {
+          throw result.error;
+        }
+
+        closeModal(
+          'genericModal'
+        );
+
+        await loadDocuments();
+        await refreshDashboard();
+
+      } catch (error) {
+
+        console.error(error);
+
+        msg(
+          $('recordMessage'),
+          error.message ||
+          'Não foi possível salvar o documento.'
+        );
+
+      } finally {
+
+        button.disabled =
+          false;
+
+        button.textContent =
+          item.id
+            ? 'Salvar alterações'
+            : 'Enviar documento';
+      }
+    };
+}
+
+
+async function openDocumentFile(
+  item
+) {
+
+  if (!item.file_path) {
+
+    alert(
+      'Este documento não possui arquivo.'
+    );
+
+    return;
+  }
+
+  try {
+
+    const {
+      data,
+      error
+    } = await client.storage
+      .from('condo-documents')
+      .createSignedUrl(
+        item.file_path,
+        60
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data?.signedUrl) {
+
+      throw new Error(
+        'Não foi possível gerar o acesso ao arquivo.'
+      );
+    }
+
+    window.open(
+      data.signedUrl,
+      '_blank',
+      'noopener,noreferrer'
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      error.message ||
+      'Não foi possível abrir o documento.'
+    );
+  }
+}
+
+
+async function deleteDocument(
+  item
+) {
+
+  if (
+    !confirm(
+      `Excluir o documento "${item.title}"?`
+    )
+  ) {
+    return;
+  }
+
+  try {
+
+    /*
+      Primeiro removemos o registro.
+      Se o banco recusar, o arquivo permanece.
+    */
+
+    const {
+      error
+    } = await client
+      .from('documents')
+      .delete()
+      .eq(
+        'id',
+        item.id
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    if (item.file_path) {
+
+      const storageResult =
+        await client.storage
+          .from('condo-documents')
+          .remove([
+            item.file_path
+          ]);
+
+      if (storageResult.error) {
+
+        console.warn(
+          storageResult.error
+        );
+      }
+    }
+
+    await loadDocuments();
+    await refreshDashboard();
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      error.message ||
+      'Não foi possível excluir o documento.'
+    );
+  }
+}
+
+
+/* =========================
+   LISTAGEM GENÉRICA
+========================= */
+
+function renderStandardList(
+  data,
+  content,
+  table
+) {
+
+  if (!data?.length) {
+
+    $('moduleList').innerHTML =
+      `
+        <div class="empty">
+          Nenhum registro encontrado.
+        </div>
+      `;
+
+    return;
+  }
+
+  $('moduleList').innerHTML =
+    '';
+
+  data.forEach(
+    item => {
+
+      const div =
+        document.createElement(
+          'div'
+        );
+
+      div.className =
+        'list-item';
+
+      div.innerHTML =
+        `
+          <div class="list-top">
+
+            <div style="flex:1">
+              ${content(item)}
+            </div>
+
+            ${
+              isAdmin()
+                ? `
+                    <div class="actions">
+
+                      <button
+                        class="btn btn-secondary btn-small edit"
+                      >
+                        Editar
+                      </button>
+
+                      <button
+                        class="btn btn-danger btn-small delete"
+                      >
+                        Excluir
+                      </button>
+
+                    </div>
+                  `
+                : ''
+            }
+
+          </div>
+        `;
+
+      if (isAdmin()) {
+
+        div.querySelector(
+          '.edit'
+        ).onclick =
+          () => {
+
+            if (
+              table ===
+              'events'
+            ) {
+
+              eventForm(item);
+
+            } else if (
+              table ===
+              'cleaning_tasks'
+            ) {
+
+              cleaningForm(item);
+
+            } else if (
+              table ===
+              'maintenance_tasks'
+            ) {
+
+              maintenanceForm(item);
+
+            } else if (
+              table ===
+              'goals'
+            ) {
+
+              goalForm(item);
+            }
+          };
+
+        div.querySelector(
+          '.delete'
+        ).onclick =
+          () => deleteRecord(
+            table,
+            item.id
+          );
+      }
+
+      $('moduleList')
+        .appendChild(div);
+    }
+  );
+}
+
+
+/* =========================
+   SALVAR REGISTRO GENÉRICO
+========================= */
+
+async function saveRecord(
+  table,
+  id,
+  payload
+) {
+
+  const messageElement =
+    $('recordMessage');
+
+  clearMsg(
+    messageElement
+  );
+
+  try {
+
+    let result;
+
+    if (id) {
+
+      result =
+        await client
+          .from(table)
+          .update(payload)
+          .eq(
+            'id',
+            id
+          );
+
+    } else {
+
+      result =
+        await client
+          .from(table)
+          .insert(payload);
+    }
+
+    if (result.error) {
+      throw result.error;
+    }
+
+    closeModal(
+      'genericModal'
+    );
+
+    await loadModule();
+    await refreshDashboard();
+
+  } catch (error) {
+
+    console.error(error);
+
+    msg(
+      messageElement,
+      error.message ||
+      'Não foi possível salvar.'
+    );
+  }
+}
+
+
+/* =========================
+   EXCLUIR REGISTRO GENÉRICO
+========================= */
+
+async function deleteRecord(
+  table,
+  id
+) {
+
+  if (
+    !confirm(
+      'Deseja realmente excluir este registro?'
+    )
+  ) {
+    return;
+  }
+
+  try {
+
+    const {
+      error
+    } = await client
+      .from(table)
+      .delete()
+      .eq(
+        'id',
+        id
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    await loadModule();
+    await refreshDashboard();
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      error.message ||
+      'Não foi possível excluir.'
+    );
+  }
+}
+
+
+/* =========================
+   DATETIME LOCAL
+========================= */
+
+function setDateTimeValue(
+  id,
+  value
+) {
+
+  if (
+    !value ||
+    !$(id)
+  ) {
+    return;
+  }
+
+  const date =
+    new Date(value);
+
+  const offset =
+    date.getTimezoneOffset();
+
+  const localDate =
+    new Date(
+      date.getTime() -
+      offset * 60000
+    );
+
+  $(id).value =
+    localDate
+      .toISOString()
+      .slice(
+        0,
+        16
+      );
+}
+
 
 /* =========================
    MORADORES
 ========================= */
 
-$('residentsCard').onclick =
-  showResidents;
+async function showResidents() {
 
-/* =========================
-   CARREGAR APARTAMENTOS
-========================= */
+  if (!isAdmin()) {
+
+    showHome();
+    return;
+  }
+
+  hideViews();
+
+  $('residentsView')
+    .classList
+    .remove('hidden');
+
+  await loadApartments();
+
+  window.scrollTo({
+    top:0,
+    behavior:'smooth'
+  });
+}
+
 
 async function loadApartments() {
 
@@ -1865,54 +4922,65 @@ async function loadApartments() {
 
   try {
 
-    const [
-      apartmentsResult,
-      linksResult
-    ] =
-      await Promise.all([
+    const {
+      data: apartments,
+      error
+    } = await client
+      .from('apartments')
+      .select('*')
+      .eq(
+        'active',
+        true
+      )
+      .order('number');
 
-        client
-          .from('apartments')
-          .select('*')
-          .eq('active', true)
-          .order('number'),
-
-        client
-          .from('apartment_residents')
-          .select(
-            'apartment_id, active'
-          )
-
-      ]);
-
-    if (apartmentsResult.error) {
-      throw apartmentsResult.error;
+    if (error) {
+      throw error;
     }
 
-    const counts = {};
+    const cards = [];
 
-    (linksResult.data || [])
-      .filter(
-        item => item.active
-      )
-      .forEach(
-        item => {
+    /*
+      Usamos a RPC segura para contar os moradores.
+      Assim não dependemos mais da antiga
+      admin_residents_view.
+    */
 
-          counts[item.apartment_id] =
-            (
-              counts[item.apartment_id] ||
-              0
-            ) + 1;
+    for (
+      const apartment
+      of apartments || []
+    ) {
+
+      const {
+        data: residents,
+        error: residentsError
+      } = await client.rpc(
+        'get_apartment_residents',
+        {
+          p_apartment_id:
+            apartment.id
         }
       );
 
-    $('apartmentsGrid').innerHTML =
-      '';
+      if (residentsError) {
+        throw residentsError;
+      }
 
-    if (
-      !apartmentsResult.data ||
-      apartmentsResult.data.length === 0
-    ) {
+      const count =
+        (residents || [])
+          .filter(
+            resident =>
+              resident.active
+          )
+          .length;
+
+      cards.push({
+        apartment,
+        count
+      });
+    }
+
+    if (!cards.length) {
 
       $('apartmentsGrid').innerHTML =
         `
@@ -1924,64 +4992,64 @@ async function loadApartments() {
       return;
     }
 
-    apartmentsResult.data
-      .forEach(
-        apartment => {
+    $('apartmentsGrid').innerHTML =
+      '';
 
-          const card =
-            document.createElement(
-              'div'
-            );
+    cards.forEach(
+      ({
+        apartment,
+        count
+      }) => {
 
-          card.className =
-            'apartment-card';
+        const card =
+          document.createElement(
+            'div'
+          );
 
-          const count =
-            counts[apartment.id] || 0;
+        card.className =
+          'apartment-card';
 
-          card.innerHTML =
-            `
-              <div class="apartment-number">
-                🏠 Apartamento ${esc(apartment.number)}
-              </div>
+        card.innerHTML =
+          `
+            <div class="apartment-number">
+              🏠 Apartamento
+              ${esc(apartment.number)}
+            </div>
 
-              <div class="apartment-floor">
-                ${esc(apartment.floor)}º andar
-              </div>
+            <div class="apartment-floor">
+              ${esc(apartment.floor)}º andar
+            </div>
 
-              <div class="apartment-info">
+            <div class="apartment-info">
 
-                <strong>
-                  ${count}
-                </strong>
+              <strong>
+                ${count}
+              </strong>
 
-                ${
-                  count === 1
-                    ? 'morador ativo'
-                    : 'moradores ativos'
-                }
+              ${
+                count === 1
+                  ? 'morador ativo'
+                  : 'moradores ativos'
+              }
 
-                <br>
+              <br>
 
-                <span class="pill green">
-                  ● Ativo
-                </span>
+              <span class="pill green">
+                ● Ativo
+              </span>
 
-              </div>
-            `;
+            </div>
+          `;
 
-          card.onclick =
-            () =>
-              openApartment(
-                apartment
-              );
+        card.onclick =
+          () => openApartment(
+            apartment
+          );
 
-          $('apartmentsGrid')
-            .appendChild(
-              card
-            );
-        }
-      );
+        $('apartmentsGrid')
+          .appendChild(card);
+      }
+    );
 
   } catch (error) {
 
@@ -1990,14 +5058,21 @@ async function loadApartments() {
     $('apartmentsGrid').innerHTML =
       `
         <div class="empty">
+
           Não foi possível carregar os apartamentos.
+
+          <br>
+
+          ${esc(error.message || '')}
+
         </div>
       `;
   }
 }
 
+
 /* =========================
-   ABRIR APARTAMENTO
+   APARTAMENTO
 ========================= */
 
 async function openApartment(
@@ -2029,13 +5104,14 @@ async function openApartment(
   ]);
 
   window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
+    top:0,
+    behavior:'smooth'
   });
 }
 
+
 /* =========================
-   CARREGAR MORADORES
+   LISTAR MORADORES
 ========================= */
 
 async function loadResidents(
@@ -2051,31 +5127,32 @@ async function loadResidents(
 
   try {
 
+    /*
+      CORREÇÃO IMPORTANTE:
+
+      Não usamos:
+      admin_residents_view
+
+      A RPC SECURITY DEFINER consulta auth.users
+      sem expor auth.users ao navegador.
+    */
+
     const {
       data,
       error
-    } =
-      await client
-        .from(
-          'admin_residents_view'
-        )
-        .select('*')
-        .eq(
-          'apartment_id',
+    } = await client.rpc(
+      'get_apartment_residents',
+      {
+        p_apartment_id:
           apartmentId
-        )
-        .order(
-          'created_at'
-        );
+      }
+    );
 
     if (error) {
       throw error;
     }
 
-    if (
-      !data ||
-      data.length === 0
-    ) {
+    if (!data?.length) {
 
       $('residentList').innerHTML =
         `
@@ -2118,16 +5195,12 @@ async function loadResidents(
                 <p>
 
                   ${esc(
-                    resident.email ||
-                    ''
+                    resident.email || ''
                   )}
 
                   ${
                     resident.phone
-                      ? ' • ' +
-                        esc(
-                          resident.phone
-                        )
+                      ? ` • ${esc(resident.phone)}`
                       : ''
                   }
 
@@ -2141,18 +5214,18 @@ async function loadResidents(
 
                 </p>
 
-                <span class="pill ${
-                  resident.active
-                    ? 'green'
-                    : 'gray'
-                }">
-
+                <span
+                  class="pill ${
+                    resident.active
+                      ? 'green'
+                      : 'gray'
+                  }"
+                >
                   ${
                     resident.active
                       ? 'Ativo'
                       : 'Inativo'
                   }
-
                 </span>
 
               </div>
@@ -2164,33 +5237,26 @@ async function loadResidents(
                     : 'btn-secondary'
                 } btn-small"
               >
-
                 ${
                   resident.active
                     ? 'Desativar'
                     : 'Ativar'
                 }
-
               </button>
 
             </div>
           `;
 
         item
-          .querySelector(
-            'button'
-          )
+          .querySelector('button')
           .onclick =
-            () =>
-              setResidentStatus(
-                resident,
-                !resident.active
-              );
+            () => setResidentStatus(
+              resident,
+              !resident.active
+            );
 
         $('residentList')
-          .appendChild(
-            item
-          );
+          .appendChild(item);
       }
     );
 
@@ -2201,13 +5267,18 @@ async function loadResidents(
     $('residentList').innerHTML =
       `
         <div class="empty">
+
           Não foi possível carregar os moradores.
+
           <br>
+
           ${esc(error.message || '')}
+
         </div>
       `;
   }
 }
+
 
 /* =========================
    ATIVAR / DESATIVAR
@@ -2223,15 +5294,14 @@ async function setResidentStatus(
       ? 'Ativar'
       : 'Desativar';
 
-  const confirmed =
-    confirm(
+  if (
+    !confirm(
       `${action} ${
         resident.full_name ||
         'este morador'
       }?`
-    );
-
-  if (!confirmed) {
+    )
+  ) {
     return;
   }
 
@@ -2239,20 +5309,19 @@ async function setResidentStatus(
 
     const {
       error
-    } =
-      await client.rpc(
-        'set_resident_status',
-        {
-          p_user_id:
-            resident.user_id,
+    } = await client.rpc(
+      'set_resident_status',
+      {
+        p_user_id:
+          resident.user_id,
 
-          p_apartment_id:
-            resident.apartment_id,
+        p_apartment_id:
+          resident.apartment_id,
 
-          p_active:
-            active
-        }
-      );
+        p_active:
+          active
+      }
+    );
 
     if (error) {
       throw error;
@@ -2262,7 +5331,7 @@ async function setResidentStatus(
       resident.apartment_id
     );
 
-    await loadApartments();
+    await refreshDashboard();
 
   } catch (error) {
 
@@ -2275,8 +5344,9 @@ async function setResidentStatus(
   }
 }
 
+
 /* =========================
-   CARREGAR CONVITES
+   CONVITES
 ========================= */
 
 async function loadInvites(
@@ -2295,31 +5365,25 @@ async function loadInvites(
     const {
       data,
       error
-    } =
-      await client
-        .from(
-          'resident_invites'
-        )
-        .select('*')
-        .eq(
-          'apartment_id',
-          apartmentId
-        )
-        .order(
-          'created_at',
-          {
-            ascending: false
-          }
-        );
+    } = await client
+      .from('resident_invites')
+      .select('*')
+      .eq(
+        'apartment_id',
+        apartmentId
+      )
+      .order(
+        'created_at',
+        {
+          ascending:false
+        }
+      );
 
     if (error) {
       throw error;
     }
 
-    if (
-      !data ||
-      data.length === 0
-    ) {
+    if (!data?.length) {
 
       $('inviteList').innerHTML =
         `
@@ -2406,8 +5470,22 @@ async function loadInvites(
                 <p>
 
                   ${esc(
-                    invite.email ||
-                    ''
+                    invite.email || ''
+                  )}
+
+                  ${
+                    invite.phone
+                      ? `<br>${esc(invite.phone)}`
+                      : ''
+                  }
+
+                  <br>
+
+                  Tipo:
+                  ${esc(
+                    typeLabel(
+                      invite.resident_type
+                    )
                   )}
 
                   <br>
@@ -2439,12 +5517,12 @@ async function loadInvites(
               ${
                 canCancel
                   ? `
-                    <button
-                      class="btn btn-danger btn-small"
-                    >
-                      Cancelar
-                    </button>
-                  `
+                      <button
+                        class="btn btn-danger btn-small"
+                      >
+                        Cancelar
+                      </button>
+                    `
                   : ''
               }
 
@@ -2459,16 +5537,13 @@ async function loadInvites(
         if (button) {
 
           button.onclick =
-            () =>
-              revokeInvite(
-                invite.id
-              );
+            () => revokeInvite(
+              invite.id
+            );
         }
 
         $('inviteList')
-          .appendChild(
-            item
-          );
+          .appendChild(item);
       }
     );
 
@@ -2479,17 +5554,18 @@ async function loadInvites(
     $('inviteList').innerHTML =
       `
         <div class="empty">
+
           Não foi possível carregar os convites.
+
           <br>
+
           ${esc(error.message || '')}
+
         </div>
       `;
   }
 }
 
-/* =========================
-   CANCELAR CONVITE
-========================= */
 
 async function revokeInvite(
   inviteId
@@ -2507,14 +5583,13 @@ async function revokeInvite(
 
     const {
       error
-    } =
-      await client.rpc(
-        'revoke_resident_invite',
-        {
-          p_invite_id:
-            inviteId
-        }
-      );
+    } = await client.rpc(
+      'revoke_resident_invite',
+      {
+        p_invite_id:
+          inviteId
+      }
+    );
 
     if (error) {
       throw error;
@@ -2535,8 +5610,9 @@ async function revokeInvite(
   }
 }
 
+
 /* =========================
-   ABRIR MODAL
+   MODAL CONVITE
 ========================= */
 
 $('newInviteButton').onclick =
@@ -2564,17 +5640,6 @@ $('newInviteButton').onclick =
       .remove('hidden');
   };
 
-/* =========================
-   FECHAR MODAL
-========================= */
-
-$('closeInviteModal').onclick =
-  () => {
-
-    $('inviteModal')
-      .classList
-      .add('hidden');
-  };
 
 $('inviteModal')
   .addEventListener(
@@ -2586,13 +5651,31 @@ $('inviteModal')
         $('inviteModal')
       ) {
 
-        $('inviteModal')
-          .classList
-          .add('hidden');
+        closeModal(
+          'inviteModal'
+        );
       }
-
     }
   );
+
+
+$('genericModal')
+  .addEventListener(
+    'click',
+    event => {
+
+      if (
+        event.target ===
+        $('genericModal')
+      ) {
+
+        closeModal(
+          'genericModal'
+        );
+      }
+    }
+  );
+
 
 /* =========================
    CRIAR CONVITE
@@ -2609,46 +5692,52 @@ $('inviteForm')
         $('inviteMessage')
       );
 
-      $('createInviteButton')
-        .disabled = true;
+      const button =
+        event
+          .submitter ||
+        event.currentTarget
+          .querySelector(
+            'button[type="submit"], button'
+          );
 
-      const params = {
-
-        p_apartment_id:
-          currentApartment.id,
-
-        p_email:
-          $('inviteEmail')
-            .value
-            .trim()
-            .toLowerCase(),
-
-        p_full_name:
-          $('inviteName')
-            .value
-            .trim(),
-
-        p_phone:
-          $('invitePhone')
-            .value
-            .trim() ||
-          null,
-
-        p_resident_type:
-          $('inviteType')
-            .value
-      };
+      if (button) {
+        button.disabled = true;
+      }
 
       try {
 
         const {
           data,
           error
-        } =
-          await client.rpc(
-            'create_resident_invite',
-            params
-          );
+        } = await client.rpc(
+          'create_resident_invite',
+          {
+
+            p_apartment_id:
+              currentApartment.id,
+
+            p_email:
+              $('inviteEmail')
+                .value
+                .trim()
+                .toLowerCase(),
+
+            p_full_name:
+              $('inviteName')
+                .value
+                .trim(),
+
+            p_phone:
+              $('invitePhone')
+                .value
+                .trim() ||
+              null,
+
+            p_resident_type:
+              $('inviteType')
+                .value
+          }
+        );
 
         if (error) {
           throw error;
@@ -2667,39 +5756,39 @@ $('inviteForm')
           .classList
           .remove('hidden');
 
-        $('inviteResult')
-          .innerHTML =
-            `
-              <strong>
-                Convite criado com sucesso
-              </strong>
+        $('inviteResult').innerHTML =
+          `
+            <strong>
+              Convite criado com sucesso
+            </strong>
 
-              <div class="invite-code">
-                ${esc(code)}
-              </div>
+            <div class="invite-code">
+              ${esc(code)}
+            </div>
 
-              <p class="muted">
+            <p class="muted">
 
-                Válido até
-                ${esc(
-                  dateBR(
-                    result?.expires_at
-                  )
-                )}.
+              Válido até
+              ${esc(
+                dateBR(
+                  result?.expires_at
+                )
+              )}.
 
-                Envie este código ao morador junto com o endereço do portal.
+              Envie este código junto
+              com o endereço do portal.
 
-              </p>
+            </p>
 
-              <button
-                id="copyInvite"
-                type="button"
-                class="btn btn-secondary btn-small"
-                style="margin-top:10px"
-              >
-                📋 Copiar código
-              </button>
-            `;
+            <button
+              id="copyInvite"
+              type="button"
+              class="btn btn-secondary btn-small"
+              style="margin-top:10px"
+            >
+              📋 Copiar código
+            </button>
+          `;
 
         $('copyInvite').onclick =
           async () => {
@@ -2708,17 +5797,17 @@ $('inviteForm')
 
               await navigator
                 .clipboard
-                .writeText(
-                  code
-                );
+                .writeText(code);
 
               $('copyInvite')
                 .textContent =
                   '✓ Copiado';
 
-            } catch (error) {
+            } catch {
 
-              console.error(error);
+              alert(
+                `Código: ${code}`
+              );
             }
           };
 
@@ -2738,12 +5827,233 @@ $('inviteForm')
 
       } finally {
 
-        $('createInviteButton')
-          .disabled = false;
+        if (button) {
+          button.disabled = false;
+        }
       }
-
     }
   );
+
+
+/* =========================
+   NOTIFICAÇÕES
+========================= */
+
+$('notificationButton').onclick =
+  showNotifications;
+
+
+async function showNotifications() {
+
+  hideViews();
+
+  $('notificationsView')
+    .classList
+    .remove('hidden');
+
+  await loadNotifications();
+
+  window.scrollTo({
+    top:0,
+    behavior:'smooth'
+  });
+}
+
+
+async function loadNotifications() {
+
+  $('notificationsList').innerHTML =
+    `
+      <div class="loading">
+        Carregando notificações...
+      </div>
+    `;
+
+  try {
+
+    const {
+      data,
+      error
+    } = await client
+      .from('notifications')
+      .select('*')
+      .order(
+        'created_at',
+        {
+          ascending:false
+        }
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data?.length) {
+
+      $('notificationsList').innerHTML =
+        `
+          <div class="empty">
+            Você não possui notificações.
+          </div>
+        `;
+
+      return;
+    }
+
+    $('notificationsList').innerHTML =
+      '';
+
+    data.forEach(
+      notification => {
+
+        const item =
+          document.createElement(
+            'div'
+          );
+
+        item.className =
+          `list-item notification-item ${
+            notification.read_at
+              ? ''
+              : 'unread'
+          }`;
+
+        item.innerHTML =
+          `
+            <div class="list-top">
+
+              <div>
+
+                <h4>
+                  ${esc(notification.title)}
+                </h4>
+
+                <p>
+
+                  ${esc(
+                    notification.message ||
+                    ''
+                  )}
+
+                  <br>
+
+                  ${esc(
+                    dateBR(
+                      notification.created_at
+                    )
+                  )}
+
+                </p>
+
+              </div>
+
+              ${
+                !notification.read_at
+                  ? `
+                      <button
+                        class="btn btn-secondary btn-small"
+                      >
+                        Marcar como lida
+                      </button>
+                    `
+                  : `
+                      <span class="pill green">
+                        Lida
+                      </span>
+                    `
+              }
+
+            </div>
+          `;
+
+        const button =
+          item.querySelector(
+            'button'
+          );
+
+        if (button) {
+
+          button.onclick =
+            async () => {
+
+              const {
+                error
+              } = await client.rpc(
+                'mark_notification_read',
+                {
+                  p_notification_id:
+                    notification.id
+                }
+              );
+
+              if (error) {
+
+                alert(
+                  error.message
+                );
+
+                return;
+              }
+
+              await loadNotifications();
+              await refreshDashboard();
+            };
+        }
+
+        $('notificationsList')
+          .appendChild(item);
+      }
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    $('notificationsList').innerHTML =
+      `
+        <div class="empty">
+
+          Não foi possível carregar as notificações.
+
+          <br>
+
+          ${esc(error.message || '')}
+
+        </div>
+      `;
+  }
+}
+
+
+$('readAllButton').onclick =
+  async () => {
+
+    try {
+
+      const {
+        error
+      } = await client.rpc(
+        'mark_all_notifications_read'
+      );
+
+      if (error) {
+        throw error;
+      }
+
+      await loadNotifications();
+      await refreshDashboard();
+
+    } catch (error) {
+
+      console.error(error);
+
+      alert(
+        error.message ||
+        'Não foi possível atualizar as notificações.'
+      );
+    }
+  };
+
 
 /* =========================
    CONVITE PENDENTE
@@ -2761,16 +6071,13 @@ async function maybeAcceptPendingInvite() {
   }
 
   const {
-    data: {
+    data:{
       session
     }
-  } =
-    await client.auth
-      .getSession();
+  } = await client.auth
+    .getSession();
 
-  if (
-    !session?.user
-  ) {
+  if (!session?.user) {
     return false;
   }
 
@@ -2800,6 +6107,37 @@ async function maybeAcceptPendingInvite() {
   return true;
 }
 
+
+/* =========================
+   ATUALIZAÇÃO DE SESSÃO
+========================= */
+
+client.auth.onAuthStateChange(
+  async (
+    event,
+    session
+  ) => {
+
+    /*
+      SIGNED_OUT é tratado aqui
+      para evitar tela antiga aberta.
+    */
+
+    if (
+      event === 'SIGNED_OUT'
+    ) {
+
+      currentProfile = null;
+      currentUser = null;
+      currentApartment = null;
+      currentModule = null;
+
+      showLogin();
+    }
+  }
+);
+
+
 /* =========================
    INICIALIZAÇÃO
 ========================= */
@@ -2811,9 +6149,8 @@ async function initialize() {
     const {
       data,
       error
-    } =
-      await client.auth
-        .getSession();
+    } = await client.auth
+      .getSession();
 
     if (
       error ||
@@ -2821,7 +6158,6 @@ async function initialize() {
     ) {
 
       showLogin();
-
       return;
     }
 
@@ -2846,6 +6182,5 @@ async function initialize() {
 initialize();
 
 </script>
-
 </body>
 </html>
