@@ -15,6 +15,7 @@
 <meta name="apple-mobile-web-app-title" content="Jacarandá II">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 
 <style>
 *{
@@ -767,6 +768,128 @@ main{
     padding-left:14px;
     padding-right:14px;
   }
+}
+
+
+/* =========================
+   FOTOS NAS SOLICITAÇÕES
+========================= */
+.request-attachments{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+  margin-top:9px;
+}
+
+.request-attachment-image{
+  width:100%;
+  aspect-ratio:1/1;
+  object-fit:cover;
+  display:block;
+  border-radius:10px;
+  border:1px solid #dce5e1;
+  cursor:pointer;
+  background:#eef3f1;
+}
+
+.request-photo-tools{
+  margin-top:9px;
+}
+
+.request-photo-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  min-height:38px;
+  padding:8px 12px;
+  border:1px solid #cfdad5;
+  border-radius:10px;
+  background:#fff;
+  color:#245c4d;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.request-photo-input{
+  display:none;
+}
+
+.request-photo-preview{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin-top:9px;
+}
+
+.request-photo-preview-item{
+  position:relative;
+}
+
+.request-photo-preview-item img{
+  width:100%;
+  aspect-ratio:1/1;
+  object-fit:cover;
+  display:block;
+  border-radius:10px;
+  border:1px solid #dce5e1;
+}
+
+.request-photo-remove{
+  position:absolute;
+  top:5px;
+  right:5px;
+  width:26px;
+  height:26px;
+  border:0;
+  border-radius:50%;
+  background:rgba(20,35,29,.82);
+  color:#fff;
+  font-size:16px;
+  line-height:1;
+  cursor:pointer;
+}
+
+.request-photo-help{
+  margin-top:6px;
+  font-size:11px;
+  color:#718078;
+}
+
+.request-image-viewer{
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  background:rgba(0,0,0,.88);
+}
+
+.request-image-viewer.hidden{
+  display:none;
+}
+
+.request-image-viewer img{
+  max-width:96vw;
+  max-height:90vh;
+  object-fit:contain;
+  border-radius:12px;
+}
+
+.request-image-viewer-close{
+  position:absolute;
+  top:16px;
+  right:16px;
+  width:42px;
+  height:42px;
+  border:0;
+  border-radius:50%;
+  background:#fff;
+  color:#163c32;
+  font-size:25px;
+  cursor:pointer;
 }
 
 .notification-item.unread{
@@ -3330,6 +3453,44 @@ async function openRequest(request) {
   }
 
   /* =========================
+     ANEXOS DAS MENSAGENS
+  ========================= */
+
+  const {
+    data: attachments,
+    error: attachmentsError
+  } = await client
+    .from('request_message_attachments')
+    .select('*')
+    .eq('request_id', request.id)
+    .order('created_at');
+
+  if (attachmentsError) {
+    console.error('Erro ao carregar anexos:', attachmentsError);
+  }
+
+  const attachmentsByMessage = {};
+
+  (attachments || []).forEach(attachment => {
+    if (!attachmentsByMessage[attachment.message_id]) {
+      attachmentsByMessage[attachment.message_id] = [];
+    }
+    attachmentsByMessage[attachment.message_id].push(attachment);
+  });
+
+  const attachmentUrls = {};
+
+  for (const attachment of (attachments || [])) {
+    const { data: signedData } = await client.storage
+      .from('request-attachments')
+      .createSignedUrl(attachment.file_path, 3600);
+
+    if (signedData?.signedUrl) {
+      attachmentUrls[attachment.id] = signedData.signedUrl;
+    }
+  }
+
+  /* =========================
      AUTORES DAS MENSAGENS
   ========================= */
 
@@ -3344,26 +3505,14 @@ async function openRequest(request) {
   const messageProfiles = {};
 
   if (messageUsers.length) {
-
-    const {
-  data: profiles,
-  error: profilesError
-} = await client.rpc(
-  'get_message_author_profiles',
-  {
-    p_user_ids: messageUsers
-  }
-);
+    const { data: profiles, error: profilesError } = await client.rpc(
+      'get_message_author_profiles',
+      { p_user_ids: messageUsers }
+    );
 
     if (profilesError) {
-
-      console.error(
-        'Erro ao carregar autores das mensagens:',
-        profilesError
-      );
-
+      console.error('Erro ao carregar autores das mensagens:', profilesError);
     } else {
-
       (profiles || []).forEach(profile => {
         messageProfiles[profile.id] = profile;
       });
@@ -3377,26 +3526,16 @@ async function openRequest(request) {
   let apartmentNumber = '';
 
   if (request.apartment_id) {
-
     try {
-
-      const {
-        data: apartment
-      } = await client
+      const { data: apartment } = await client
         .from('apartments')
         .select('number')
         .eq('id', request.apartment_id)
         .maybeSingle();
 
-      apartmentNumber =
-        apartment?.number || '';
-
+      apartmentNumber = apartment?.number || '';
     } catch (error) {
-
-      console.warn(
-        'Não foi possível carregar o apartamento:',
-        error
-      );
+      console.warn('Não foi possível carregar o apartamento:', error);
     }
   }
 
@@ -3405,42 +3544,20 @@ async function openRequest(request) {
   ========================= */
 
   const formatPersonName = name => {
-
-    if (!name) {
-      return 'Morador';
-    }
-
+    if (!name) return 'Morador';
     return String(name)
       .trim()
       .toLowerCase()
-      .replace(
-        /(^|\s)([a-zà-ÿ])/g,
-        (_, space, letter) =>
-          space + letter.toUpperCase()
-      );
+      .replace(/(^|\s)([a-zà-ÿ])/g, (_, space, letter) => space + letter.toUpperCase());
   };
 
   const formatMessageDate = value => {
-
-    if (!value) {
-      return '';
-    }
-
+    if (!value) return '';
     try {
-
-      return new Intl.DateTimeFormat(
-        'pt-BR',
-        {
-          day:'2-digit',
-          month:'2-digit',
-          year:'numeric',
-          hour:'2-digit',
-          minute:'2-digit'
-        }
-      ).format(
-        new Date(value)
-      );
-
+      return new Intl.DateTimeFormat('pt-BR', {
+        day:'2-digit', month:'2-digit', year:'numeric',
+        hour:'2-digit', minute:'2-digit'
+      }).format(new Date(value));
     } catch {
       return dateBR(value);
     }
@@ -3455,114 +3572,55 @@ async function openRequest(request) {
     cancelada:'Cancelada'
   };
 
-  const requestClosed = [
-    'concluida',
-    'cancelada'
-  ].includes(request.status);
+  const requestClosed = ['concluida','cancelada'].includes(request.status);
 
   /* =========================
      MENSAGENS
   ========================= */
 
-  const messagesHtml =
-    messages?.length
-      ? messages.map(message => {
+  const messagesHtml = messages?.length
+    ? messages.map(message => {
+        const author = messageProfiles[message.user_id];
+        const isMe = message.user_id === currentUser.id;
+        const isAdminMessage = author?.role === 'admin';
+        const authorName = formatPersonName(
+          author?.full_name || (isMe ? currentProfile?.full_name : 'Morador')
+        );
+        const authorType = isAdminMessage
+          ? 'Administração'
+          : (apartmentNumber ? `Morador • Apto. ${apartmentNumber}` : 'Morador');
 
-          const author =
-            messageProfiles[
-              message.user_id
-            ];
+        const messageAttachments = attachmentsByMessage[message.id] || [];
+        const photosHtml = messageAttachments.length
+          ? `<div class="request-attachments">${messageAttachments.map(attachment => {
+              const url = attachmentUrls[attachment.id];
+              if (!url) return '';
+              return `
+                <img
+                  class="request-attachment-image"
+                  src="${esc(url)}"
+                  alt="${esc(attachment.file_name || 'Foto da solicitação')}"
+                  loading="lazy"
+                  data-request-image="${esc(url)}"
+                >
+              `;
+            }).join('')}</div>`
+          : '';
 
-          const isMe =
-            message.user_id ===
-            currentUser.id;
-
-          const isAdminMessage =
-            author?.role === 'admin';
-
-          const authorName =
-            formatPersonName(
-              author?.full_name ||
-              (
-                isMe
-                  ? currentProfile?.full_name
-                  : 'Morador'
-              )
-            );
-
-          const authorType =
-            isAdminMessage
-              ? 'Administração'
-              : (
-                  apartmentNumber
-                    ? `Morador • Apto. ${apartmentNumber}`
-                    : 'Morador'
-                );
-
-          return `
-            <div
-              class="bubble ${
-                isMe ? 'me' : ''
-              } ${
-                isAdminMessage
-                  ? 'admin-message'
-                  : ''
-              }"
-            >
-
-              <div class="bubble-author">
-
-                <span>
-                  ${
-                    isAdminMessage
-                      ? '🛡️ '
-                      : '👤 '
-                  }${esc(authorName)}
-                </span>
-
-                ${
-                  isMe
-                    ? `
-                        <span
-                          style="
-                            font-size:10px;
-                            font-weight:500;
-                            opacity:.65;
-                          "
-                        >
-                          • Você
-                        </span>
-                      `
-                    : ''
-                }
-
-              </div>
-
-              <div class="bubble-role">
-                ${esc(authorType)}
-              </div>
-
-              <div class="bubble-text">
-                ${esc(message.message)}
-              </div>
-
-              <div class="bubble-time">
-                ${esc(
-                  formatMessageDate(
-                    message.created_at
-                  )
-                )}
-              </div>
-
+        return `
+          <div class="bubble ${isMe ? 'me' : ''} ${isAdminMessage ? 'admin-message' : ''}">
+            <div class="bubble-author">
+              <span>${isAdminMessage ? '🛡️ ' : '👤 '}${esc(authorName)}</span>
+              ${isMe ? `<span style="font-size:10px;font-weight:500;opacity:.65;">• Você</span>` : ''}
             </div>
-          `;
-        }).join('')
-
-      : `
-          <div class="empty">
-            Nenhuma mensagem ainda.
+            <div class="bubble-role">${esc(authorType)}</div>
+            ${message.message ? `<div class="bubble-text">${esc(message.message)}</div>` : ''}
+            ${photosHtml}
+            <div class="bubble-time">${esc(formatMessageDate(message.created_at))}</div>
           </div>
         `;
+      }).join('')
+    : `<div class="empty">Nenhuma mensagem ainda.</div>`;
 
   /* =========================
      MODAL
@@ -3570,283 +3628,345 @@ async function openRequest(request) {
 
   openModal(
     request.title,
-    `Solicitação • ${
-      statusLabels[request.status] ||
-      request.status.replaceAll('_',' ')
-    }`,
-
+    `Solicitação • ${statusLabels[request.status] || request.status.replaceAll('_',' ')}`,
     `
       <div class="request-summary">
-
-        <p>
-          ${esc(request.description || '')}
-        </p>
-
+        <p>${esc(request.description || '')}</p>
         <div class="meta">
-
           ${pill(request.priority)}
-
           ${pill(request.status)}
-
-          ${
-            apartmentNumber
-              ? `
-                  <span class="pill gray">
-                    🏠 Apto. ${esc(apartmentNumber)}
-                  </span>
-                `
-              : ''
-          }
-
+          ${apartmentNumber ? `<span class="pill gray">🏠 Apto. ${esc(apartmentNumber)}</span>` : ''}
         </div>
-
       </div>
 
-      ${
-        isAdmin()
-          ? `
-              <div class="request-status-box">
+      ${isAdmin() ? `
+        <div class="request-status-box">
+          <div class="field">
+            <label>Status da solicitação</label>
+            <select id="requestStatus">
+              ${[
+                ['aberta','Aberta'],
+                ['em_analise','Em análise'],
+                ['em_andamento','Em andamento'],
+                ['aguardando_morador','Aguardando morador'],
+                ['concluida','Concluída'],
+                ['cancelada','Cancelada']
+              ].map(option => `
+                <option value="${option[0]}" ${request.status === option[0] ? 'selected' : ''}>
+                  ${option[1]}
+                </option>
+              `).join('')}
+            </select>
+          </div>
+          <button id="saveRequestStatus" type="button" class="btn btn-secondary btn-small">
+            Atualizar status
+          </button>
+        </div>
+      ` : ''}
 
-                <div class="field">
+      <div class="section-title">Conversa</div>
+      <div id="requestThread" class="request-thread">${messagesHtml}</div>
 
-                  <label>
-                    Status da solicitação
-                  </label>
+      ${!requestClosed ? `
+        <form id="messageForm" class="request-message-form">
+          <label for="requestMessage" style="display:block;font-size:12px;font-weight:700;margin-bottom:7px;">
+            Responder
+          </label>
 
-                  <select id="requestStatus">
+          <div class="request-message-row">
+            <textarea
+              id="requestMessage"
+              placeholder="Escreva uma mensagem..."
+              maxlength="2000"
+            ></textarea>
 
-                    ${[
-                      ['aberta','Aberta'],
-                      ['em_analise','Em análise'],
-                      ['em_andamento','Em andamento'],
-                      ['aguardando_morador','Aguardando morador'],
-                      ['concluida','Concluída'],
-                      ['cancelada','Cancelada']
-                    ].map(option => `
-                      <option
-                        value="${option[0]}"
-                        ${
-                          request.status === option[0]
-                            ? 'selected'
-                            : ''
-                        }
-                      >
-                        ${option[1]}
-                      </option>
-                    `).join('')}
+            <button id="sendRequestMessage" type="submit" class="btn btn-primary request-send-button">
+              Enviar
+            </button>
+          </div>
 
-                  </select>
-
-                </div>
-
-                <button
-                  id="saveRequestStatus"
-                  type="button"
-                  class="btn btn-secondary btn-small"
-                >
-                  Atualizar status
-                </button>
-
-              </div>
-            `
-          : ''
-      }
-
-      <div class="section-title">
-        Conversa
-      </div>
-
-      <div
-        id="requestThread"
-        class="request-thread"
-      >
-        ${messagesHtml}
-      </div>
-
-      ${
-        !requestClosed
-          ? `
-              <form
-                id="messageForm"
-                class="request-message-form"
-              >
-
-                <label
-                  for="requestMessage"
-                  style="
-                    display:block;
-                    font-size:12px;
-                    font-weight:700;
-                    margin-bottom:7px;
-                  "
-                >
-                  Responder
-                </label>
-
-                <div class="request-message-row">
-
-                  <textarea
-                    id="requestMessage"
-                    placeholder="Escreva uma mensagem..."
-                    maxlength="2000"
-                    required
-                  ></textarea>
-
-                  <button
-                    id="sendRequestMessage"
-                    type="submit"
-                    class="btn btn-primary request-send-button"
-                  >
-                    Enviar
-                  </button>
-
-                </div>
-
-              </form>
-            `
-
-          : `
-              <div class="request-closed">
-                ${
-                  request.status === 'concluida'
-                    ? '✓ Esta solicitação foi concluída.'
-                    : 'Esta solicitação foi cancelada.'
-                }
-                O histórico da conversa permanece disponível.
-              </div>
-            `
-      }
+          <div class="request-photo-tools">
+            <label class="request-photo-button" for="requestPhotoInput">
+              📷 Adicionar foto
+            </label>
+            <input
+              id="requestPhotoInput"
+              class="request-photo-input"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
+              multiple
+            >
+            <div class="request-photo-help">
+              Até 3 fotos por mensagem • máximo de 5 MB por foto
+            </div>
+            <div id="requestPhotoPreview" class="request-photo-preview"></div>
+          </div>
+        </form>
+      ` : `
+        <div class="request-closed">
+          ${request.status === 'concluida' ? '✓ Esta solicitação foi concluída.' : 'Esta solicitação foi cancelada.'}
+          O histórico da conversa permanece disponível.
+        </div>
+      `}
     `
   );
 
-  /* =========================
-     ROLA PARA ÚLTIMA MENSAGEM
-  ========================= */
-
-  const thread =
-    $('requestThread');
-
+  const thread = $('requestThread');
   if (thread) {
-
     requestAnimationFrame(() => {
-      thread.scrollTop =
-        thread.scrollHeight;
+      thread.scrollTop = thread.scrollHeight;
     });
   }
+
+  /* =========================
+     AMPLIA FOTO
+  ========================= */
+
+  document.querySelectorAll('[data-request-image]').forEach(imageElement => {
+    imageElement.onclick = () => {
+      const viewer = document.createElement('div');
+      viewer.className = 'request-image-viewer';
+      viewer.innerHTML = `
+        <button class="request-image-viewer-close" type="button" aria-label="Fechar">×</button>
+        <img src="${esc(imageElement.dataset.requestImage)}" alt="Foto da solicitação">
+      `;
+      const closeViewer = () => viewer.remove();
+      viewer.onclick = event => {
+        if (event.target === viewer || event.target.closest('.request-image-viewer-close')) {
+          closeViewer();
+        }
+      };
+      document.body.appendChild(viewer);
+    };
+  });
 
   /* =========================
      ATUALIZA STATUS
   ========================= */
 
-  if (
-    isAdmin() &&
-    $('saveRequestStatus')
-  ) {
-
-    $('saveRequestStatus').onclick =
-      async () => {
-
-        const button =
-          $('saveRequestStatus');
-
-        const status =
-          v('requestStatus');
-
-        const payload = {
-          status,
-          closed_at:
-            status === 'concluida'
-              ? new Date().toISOString()
-              : null
-        };
-
-        button.disabled = true;
-        button.textContent =
-          'Atualizando...';
-
-        const {
-          error
-        } = await client
-          .from('requests')
-          .update(payload)
-          .eq('id', request.id);
-
-        if (error) {
-
-          button.disabled = false;
-          button.textContent =
-            'Atualizar status';
-
-          alert(error.message);
-
-          return;
-        }
-
-        request.status =
-          status;
-
-        await refreshDashboard();
-
-        await openRequest(
-          request
-        );
+  if (isAdmin() && $('saveRequestStatus')) {
+    $('saveRequestStatus').onclick = async () => {
+      const button = $('saveRequestStatus');
+      const status = v('requestStatus');
+      const payload = {
+        status,
+        closed_at: status === 'concluida' ? new Date().toISOString() : null
       };
+
+      button.disabled = true;
+      button.textContent = 'Atualizando...';
+
+      const { error } = await client
+        .from('requests')
+        .update(payload)
+        .eq('id', request.id);
+
+      if (error) {
+        button.disabled = false;
+        button.textContent = 'Atualizar status';
+        alert(error.message);
+        return;
+      }
+
+      request.status = status;
+      await refreshDashboard();
+      await openRequest(request);
+    };
   }
 
   /* =========================
-     ENVIA MENSAGEM
+     SELEÇÃO / PRÉVIA DE FOTOS
+  ========================= */
+
+  let selectedRequestPhotos = [];
+  const photoInput = $('requestPhotoInput');
+  const photoPreview = $('requestPhotoPreview');
+
+  const renderPhotoPreview = () => {
+    if (!photoPreview) return;
+
+    photoPreview.innerHTML = selectedRequestPhotos.map((item, index) => `
+      <div class="request-photo-preview-item">
+        <img src="${esc(item.previewUrl)}" alt="Prévia da foto ${index + 1}">
+        <button
+          type="button"
+          class="request-photo-remove"
+          data-remove-request-photo="${index}"
+          aria-label="Remover foto"
+        >×</button>
+      </div>
+    `).join('');
+
+    photoPreview.querySelectorAll('[data-remove-request-photo]').forEach(button => {
+      button.onclick = () => {
+        const index = Number(button.dataset.removeRequestPhoto);
+        const removed = selectedRequestPhotos[index];
+        if (removed?.previewUrl) URL.revokeObjectURL(removed.previewUrl);
+        selectedRequestPhotos.splice(index, 1);
+        renderPhotoPreview();
+      };
+    });
+  };
+
+  if (photoInput) {
+    photoInput.onchange = async () => {
+      const incoming = Array.from(photoInput.files || []);
+      photoInput.value = '';
+
+      if (!incoming.length) return;
+
+      const remaining = 3 - selectedRequestPhotos.length;
+      if (remaining <= 0) {
+        alert('Você pode enviar no máximo 3 fotos por mensagem.');
+        return;
+      }
+
+      if (incoming.length > remaining) {
+        alert(`Você pode adicionar somente mais ${remaining} foto(s) nesta mensagem.`);
+      }
+
+      for (const originalFile of incoming.slice(0, remaining)) {
+        try {
+          let file = originalFile;
+          const lowerName = String(originalFile.name || '').toLowerCase();
+          const isHeic = ['image/heic','image/heif'].includes(originalFile.type) ||
+            lowerName.endsWith('.heic') || lowerName.endsWith('.heif');
+
+          if (isHeic) {
+            if (typeof heic2any !== 'function') {
+              throw new Error('Não foi possível carregar o conversor de fotos do iPhone. Atualize a página e tente novamente.');
+            }
+
+            let converted = await heic2any({
+              blob: originalFile,
+              toType: 'image/jpeg',
+              quality: 0.88
+            });
+
+            if (Array.isArray(converted)) converted = converted[0];
+
+            const baseName = (originalFile.name || 'foto').replace(/\.(heic|heif)$/i, '');
+            file = new File([converted], `${baseName}.jpg`, {
+              type:'image/jpeg',
+              lastModified:Date.now()
+            });
+          }
+
+          if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
+            throw new Error(`Formato não suportado: ${originalFile.name || 'arquivo'}.`);
+          }
+
+          if (file.size > 5 * 1024 * 1024) {
+            throw new Error(`${originalFile.name || 'A foto'} ultrapassa o limite de 5 MB.`);
+          }
+
+          selectedRequestPhotos.push({
+            file,
+            previewUrl:URL.createObjectURL(file)
+          });
+        } catch (photoError) {
+          alert(photoError.message || 'Não foi possível preparar a foto.');
+        }
+      }
+
+      renderPhotoPreview();
+    };
+  }
+
+  /* =========================
+     ENVIA MENSAGEM + FOTOS
   ========================= */
 
   if ($('messageForm')) {
+    $('messageForm').onsubmit = async event => {
+      event.preventDefault();
 
-    $('messageForm').onsubmit =
-      async event => {
+      const message = v('requestMessage');
 
-        event.preventDefault();
+      if (!message && !selectedRequestPhotos.length) {
+        alert('Escreva uma mensagem ou adicione pelo menos uma foto.');
+        return;
+      }
 
-        const message =
-          v('requestMessage');
+      const button = $('sendRequestMessage');
+      button.disabled = true;
+      button.textContent = selectedRequestPhotos.length ? 'Enviando fotos...' : 'Enviando...';
 
-        if (!message) {
-          return;
+      const { data: insertedMessage, error: messageError } = await client
+        .from('request_messages')
+        .insert({
+          request_id:request.id,
+          user_id:currentUser.id,
+          message:message || ''
+        })
+        .select('id')
+        .single();
+
+      if (messageError) {
+        button.disabled = false;
+        button.textContent = 'Enviar';
+        alert(messageError.message);
+        return;
+      }
+
+      const uploadedPaths = [];
+
+      try {
+        for (let index = 0; index < selectedRequestPhotos.length; index++) {
+          const file = selectedRequestPhotos[index].file;
+          const extension = file.type === 'image/png'
+            ? 'png'
+            : file.type === 'image/webp'
+              ? 'webp'
+              : 'jpg';
+
+          const safeId = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${index}`);
+          const fileName = `foto-${safeId}.${extension}`;
+          const filePath = `${request.id}/${currentUser.id}/${fileName}`;
+
+          const { error: uploadError } = await client.storage
+            .from('request-attachments')
+            .upload(filePath, file, {
+              contentType:file.type,
+              upsert:false
+            });
+
+          if (uploadError) throw uploadError;
+          uploadedPaths.push(filePath);
+
+          const { error: attachmentError } = await client
+            .from('request_message_attachments')
+            .insert({
+              message_id:insertedMessage.id,
+              request_id:request.id,
+              user_id:currentUser.id,
+              file_name:file.name || fileName,
+              file_path:filePath,
+              mime_type:file.type,
+              file_size:file.size
+            });
+
+          if (attachmentError) throw attachmentError;
+        }
+      } catch (uploadProcessError) {
+        for (const path of uploadedPaths) {
+          await client.storage.from('request-attachments').remove([path]);
         }
 
-        const button =
-          $('sendRequestMessage');
+        button.disabled = false;
+        button.textContent = 'Enviar';
+        alert(`A mensagem foi criada, mas houve um erro ao anexar as fotos: ${uploadProcessError.message}`);
+        await openRequest(request);
+        return;
+      }
 
-        button.disabled = true;
-        button.textContent =
-          'Enviando...';
+      selectedRequestPhotos.forEach(item => {
+        if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+      });
 
-        const {
-          error
-        } = await client
-          .from('request_messages')
-          .insert({
-            request_id:
-              request.id,
-            user_id:
-              currentUser.id,
-            message
-          });
-
-        if (error) {
-
-          button.disabled = false;
-          button.textContent =
-            'Enviar';
-
-          alert(error.message);
-
-          return;
-        }
-
-        await refreshDashboard();
-
-        await openRequest(
-          request
-        );
-      };
+      await refreshDashboard();
+      await openRequest(request);
+    };
   }
 }
 
