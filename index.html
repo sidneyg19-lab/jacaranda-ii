@@ -4768,6 +4768,7 @@ async function deleteDocument(
 function renderStandardList(
   data,
   content,
+  editHandler,
   table
 ) {
 
@@ -4783,103 +4784,93 @@ function renderStandardList(
     return;
   }
 
-  $('moduleList').innerHTML =
-    '';
+  $('moduleList').innerHTML = '';
 
-  data.forEach(
-    item => {
+  data.forEach(item => {
 
-      const div =
-        document.createElement(
-          'div'
-        );
+    const div =
+      document.createElement('div');
 
-      div.className =
-        'list-item';
+    div.className = 'list-item';
 
-      div.innerHTML =
-        `
-          <div class="list-top">
+    div.innerHTML =
+      `
+        <div class="list-top">
 
-            <div style="flex:1">
-              ${content(item)}
-            </div>
-
-            ${
-              isAdmin()
-                ? `
-                    <div class="actions">
-
-                      <button
-                        class="btn btn-secondary btn-small edit"
-                      >
-                        Editar
-                      </button>
-
-                      <button
-                        class="btn btn-danger btn-small delete"
-                      >
-                        Excluir
-                      </button>
-
-                    </div>
-                  `
-                : ''
-            }
-
+          <div style="flex:1">
+            ${content(item)}
           </div>
-        `;
 
-      if (isAdmin()) {
+          ${
+            isAdmin()
+              ? `
+                  <div class="actions">
 
-        div.querySelector(
-          '.edit'
-        ).onclick =
-          () => {
+                    <button
+                      class="btn btn-secondary btn-small edit"
+                    >
+                      Editar
+                    </button>
 
-            if (
-              table ===
-              'events'
-            ) {
+                    <button
+                      class="btn btn-danger btn-small delete"
+                    >
+                      Excluir
+                    </button>
 
-              eventForm(item);
+                  </div>
+                `
+              : ''
+          }
 
-            } else if (
-              table ===
-              'cleaning_tasks'
-            ) {
+        </div>
+      `;
 
-              cleaningForm(item);
+    if (isAdmin()) {
 
-            } else if (
-              table ===
-              'maintenance_tasks'
-            ) {
+      const editButton =
+        div.querySelector('.edit');
 
-              maintenanceForm(item);
+      const deleteButton =
+        div.querySelector('.delete');
 
-            } else if (
-              table ===
-              'goals'
-            ) {
+      editButton.onclick = () => {
 
-              goalForm(item);
-            }
-          };
+        if (typeof editHandler === 'function') {
+          editHandler(item);
+        }
 
-        div.querySelector(
-          '.delete'
-        ).onclick =
-          () => deleteRecord(
-            table,
-            item.id
+      };
+
+      deleteButton.onclick = () => {
+
+        if (
+          typeof table !== 'string' ||
+          !table.trim()
+        ) {
+
+          console.error(
+            'Tabela inválida para exclusão:',
+            table
           );
-      }
 
-      $('moduleList')
-        .appendChild(div);
+          alert(
+            'Não foi possível identificar a tabela deste registro.'
+          );
+
+          return;
+        }
+
+        deleteRecord(
+          table,
+          item.id
+        );
+      };
     }
-  );
+
+    $('moduleList')
+      .appendChild(div);
+  });
 }
 
 
