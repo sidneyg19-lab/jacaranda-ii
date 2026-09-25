@@ -2931,7 +2931,55 @@ async function openRequest(
 
     return;
   }
+  // =========================================================
+  // IDENTIFICA QUEM ENVIOU CADA MENSAGEM
+  // =========================================================
 
+  const messageUsers = [
+    ...new Set(
+      (messages || [])
+        .map(message => message.user_id)
+        .filter(Boolean)
+    )
+  ];
+
+  const messageProfiles = {};
+
+  if (messageUsers.length) {
+
+    const {
+      data: profiles,
+      error: profilesError
+    } = await client
+      .from('profiles')
+      .select(
+        'id, full_name, role'
+      )
+      .in(
+        'id',
+        messageUsers
+      );
+
+    if (profilesError) {
+
+      console.error(
+        'Erro ao carregar autores das mensagens:',
+        profilesError
+      );
+
+    } else {
+
+      (profiles || []).forEach(
+        profile => {
+
+          messageProfiles[
+            profile.id
+          ] = profile;
+
+        }
+      );
+    }
+  }
   openModal(
     request.title,
     `Solicitação • ${request.status.replaceAll('_',' ')}`,
@@ -3003,31 +3051,100 @@ async function openRequest(
       <div class="request-thread">
 
         ${
-          messages?.length
-            ? messages.map(
-                message => `
-                  <div class="bubble ${
-                    message.user_id === currentUser.id
-                      ? 'me'
-                      : ''
-                  }">
+          messages.map(
+  message => {
 
-                    ${esc(message.message)}
+    const author =
+      messageProfiles[
+        message.user_id
+      ];
 
-                    <div
-                      class="muted"
-                      style="margin-top:5px"
-                    >
-                      ${esc(
-                        dateBR(
-                          message.created_at
-                        )
-                      )}
-                    </div>
+    const authorName =
+      author?.full_name ||
+      (
+        message.user_id === currentUser.id
+          ? currentProfile?.full_name
+          : 'Morador'
+      ) ||
+      'Morador';
 
-                  </div>
-                `
-              ).join('')
+    const authorType =
+      author?.role === 'admin'
+        ? 'Administração'
+        : 'Morador';
+
+    const isMe =
+      message.user_id ===
+      currentUser.id;
+
+    return `
+      <div class="bubble ${
+        isMe
+          ? 'me'
+          : ''
+      }">
+
+        <div
+          style="
+            font-weight:700;
+            margin-bottom:2px;
+          "
+        >
+          ${esc(authorName)}
+          ${
+            isMe
+              ? `
+                <span
+                  style="
+                    font-weight:400;
+                    opacity:.65;
+                    font-size:11px;
+                  "
+                >
+                  • Você
+                </span>
+              `
+              : ''
+          }
+        </div>
+
+        <div
+          class="muted"
+          style="
+            font-size:11px;
+            margin-bottom:8px;
+          "
+        >
+          ${esc(authorType)}
+        </div>
+
+        <div
+          style="
+            white-space:pre-wrap;
+            word-break:break-word;
+          "
+        >
+          ${esc(message.message)}
+        </div>
+
+        <div
+          class="muted"
+          style="
+            margin-top:7px;
+            font-size:11px;
+          "
+        >
+          ${esc(
+            dateBR(
+              message.created_at
+            )
+          )}
+        </div>
+
+      </div>
+    `;
+  }
+).join('')
             : `
                 <div class="empty">
                   Nenhuma mensagem ainda.
