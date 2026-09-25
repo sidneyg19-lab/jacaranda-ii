@@ -619,24 +619,154 @@ main{
   margin-top:8px
 }
 
+/* =========================
+   CHAT DAS SOLICITAÇÕES
+========================= */
+
 .request-thread{
-  max-height:300px;
-  overflow:auto;
+  max-height:420px;
+  overflow-y:auto;
+  overflow-x:hidden;
   display:flex;
   flex-direction:column;
-  gap:8px;
-  margin:12px 0
+  gap:12px;
+  margin:16px 0;
+  padding:14px;
+  background:#f7f9f8;
+  border:1px solid #e5ebe8;
+  border-radius:16px;
+  scroll-behavior:smooth;
 }
 
 .bubble{
-  padding:10px 12px;
-  border-radius:12px;
-  background:#f1f4f3;
-  font-size:13px
+  width:fit-content;
+  max-width:82%;
+  padding:11px 14px;
+  border-radius:16px 16px 16px 5px;
+  background:#ffffff;
+  border:1px solid #e1e7e4;
+  box-shadow:0 2px 6px rgba(0,0,0,.04);
+  font-size:13px;
+  line-height:1.45;
+  align-self:flex-start;
+  word-break:break-word;
 }
 
 .bubble.me{
-  background:#e8f2ed
+  align-self:flex-end;
+  background:#e6f1ec;
+  border-color:#cfe2d9;
+  border-radius:16px 16px 5px 16px;
+}
+
+.bubble.admin-message{
+  border-left:4px solid #245c4d;
+}
+
+.bubble-author{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
+  font-weight:700;
+  color:#163c32;
+  margin-bottom:2px;
+}
+
+.bubble-role{
+  font-size:11px;
+  color:#718078;
+  margin-bottom:7px;
+}
+
+.bubble-text{
+  white-space:pre-wrap;
+  word-break:break-word;
+  color:#25312c;
+}
+
+.bubble-time{
+  margin-top:7px;
+  font-size:10px;
+  color:#89938f;
+  text-align:right;
+}
+
+.request-summary{
+  padding:14px;
+  margin-bottom:12px;
+  background:#f7f9f8;
+  border:1px solid #e5ebe8;
+  border-radius:14px;
+}
+
+.request-summary p{
+  margin:0 0 10px;
+  white-space:pre-wrap;
+}
+
+.request-status-box{
+  margin-top:16px;
+  padding:14px;
+  border:1px solid #e5ebe8;
+  border-radius:14px;
+  background:#fff;
+}
+
+.request-message-form{
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid #e5ebe8;
+}
+
+.request-message-row{
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
+}
+
+.request-message-row textarea{
+  flex:1;
+  min-height:46px;
+  max-height:130px;
+  resize:vertical;
+  margin:0;
+}
+
+.request-send-button{
+  min-height:46px;
+  white-space:nowrap;
+}
+
+.request-closed{
+  padding:12px;
+  margin-top:14px;
+  text-align:center;
+  background:#f1f4f3;
+  border-radius:12px;
+  color:#69766f;
+  font-size:13px;
+}
+
+@media (max-width:500px){
+
+  .request-thread{
+    max-height:50vh;
+    padding:10px;
+  }
+
+  .bubble{
+    max-width:90%;
+  }
+
+  .request-message-row{
+    align-items:stretch;
+  }
+
+  .request-send-button{
+    padding-left:14px;
+    padding-right:14px;
+  }
 }
 
 .notification-item.unread{
@@ -1651,7 +1781,8 @@ if (profile.role !== 'admin') {
 
   showPortal();
 
-  refreshPushButton();
+  await refreshPushButton();
+  await processPendingPushTarget();
 }
 
 
@@ -3096,9 +3227,7 @@ async function requestForm() {
 }
 
 
-async function openRequest(
-  request
-) {
+async function openRequest(request) {
 
   const {
     data: messages,
@@ -3106,23 +3235,17 @@ async function openRequest(
   } = await client
     .from('request_messages')
     .select('*')
-    .eq(
-      'request_id',
-      request.id
-    )
+    .eq('request_id', request.id)
     .order('created_at');
 
   if (error) {
-
-    alert(
-      error.message
-    );
-
+    alert(error.message);
     return;
   }
-  // =========================================================
-  // IDENTIFICA QUEM ENVIOU CADA MENSAGEM
-  // =========================================================
+
+  /* =========================
+     AUTORES DAS MENSAGENS
+  ========================= */
 
   const messageUsers = [
     ...new Set(
@@ -3141,13 +3264,8 @@ async function openRequest(
       error: profilesError
     } = await client
       .from('profiles')
-      .select(
-        'id, full_name, role'
-      )
-      .in(
-        'id',
-        messageUsers
-      );
+      .select('id, full_name, role')
+      .in('id', messageUsers);
 
     if (profilesError) {
 
@@ -3158,54 +3276,265 @@ async function openRequest(
 
     } else {
 
-      (profiles || []).forEach(
-        profile => {
+      (profiles || []).forEach(profile => {
+        messageProfiles[profile.id] = profile;
+      });
+    }
+  }
 
-          messageProfiles[
-            profile.id
-          ] = profile;
+  /* =========================
+     APARTAMENTO
+  ========================= */
 
-        }
+  let apartmentNumber = '';
+
+  if (request.apartment_id) {
+
+    try {
+
+      const {
+        data: apartment
+      } = await client
+        .from('apartments')
+        .select('number')
+        .eq('id', request.apartment_id)
+        .maybeSingle();
+
+      apartmentNumber =
+        apartment?.number || '';
+
+    } catch (error) {
+
+      console.warn(
+        'Não foi possível carregar o apartamento:',
+        error
       );
     }
   }
+
+  /* =========================
+     FORMATAÇÃO
+  ========================= */
+
+  const formatPersonName = name => {
+
+    if (!name) {
+      return 'Morador';
+    }
+
+    return String(name)
+      .trim()
+      .toLowerCase()
+      .replace(
+        /(^|\s)([a-zà-ÿ])/g,
+        (_, space, letter) =>
+          space + letter.toUpperCase()
+      );
+  };
+
+  const formatMessageDate = value => {
+
+    if (!value) {
+      return '';
+    }
+
+    try {
+
+      return new Intl.DateTimeFormat(
+        'pt-BR',
+        {
+          day:'2-digit',
+          month:'2-digit',
+          year:'numeric',
+          hour:'2-digit',
+          minute:'2-digit'
+        }
+      ).format(
+        new Date(value)
+      );
+
+    } catch {
+      return dateBR(value);
+    }
+  };
+
+  const statusLabels = {
+    aberta:'Aberta',
+    em_analise:'Em análise',
+    em_andamento:'Em andamento',
+    aguardando_morador:'Aguardando morador',
+    concluida:'Concluída',
+    cancelada:'Cancelada'
+  };
+
+  const requestClosed = [
+    'concluida',
+    'cancelada'
+  ].includes(request.status);
+
+  /* =========================
+     MENSAGENS
+  ========================= */
+
+  const messagesHtml =
+    messages?.length
+      ? messages.map(message => {
+
+          const author =
+            messageProfiles[
+              message.user_id
+            ];
+
+          const isMe =
+            message.user_id ===
+            currentUser.id;
+
+          const isAdminMessage =
+            author?.role === 'admin';
+
+          const authorName =
+            formatPersonName(
+              author?.full_name ||
+              (
+                isMe
+                  ? currentProfile?.full_name
+                  : 'Morador'
+              )
+            );
+
+          const authorType =
+            isAdminMessage
+              ? 'Administração'
+              : (
+                  apartmentNumber
+                    ? `Morador • Apto. ${apartmentNumber}`
+                    : 'Morador'
+                );
+
+          return `
+            <div
+              class="bubble ${
+                isMe ? 'me' : ''
+              } ${
+                isAdminMessage
+                  ? 'admin-message'
+                  : ''
+              }"
+            >
+
+              <div class="bubble-author">
+
+                <span>
+                  ${
+                    isAdminMessage
+                      ? '🛡️ '
+                      : '👤 '
+                  }${esc(authorName)}
+                </span>
+
+                ${
+                  isMe
+                    ? `
+                        <span
+                          style="
+                            font-size:10px;
+                            font-weight:500;
+                            opacity:.65;
+                          "
+                        >
+                          • Você
+                        </span>
+                      `
+                    : ''
+                }
+
+              </div>
+
+              <div class="bubble-role">
+                ${esc(authorType)}
+              </div>
+
+              <div class="bubble-text">
+                ${esc(message.message)}
+              </div>
+
+              <div class="bubble-time">
+                ${esc(
+                  formatMessageDate(
+                    message.created_at
+                  )
+                )}
+              </div>
+
+            </div>
+          `;
+        }).join('')
+
+      : `
+          <div class="empty">
+            Nenhuma mensagem ainda.
+          </div>
+        `;
+
+  /* =========================
+     MODAL
+  ========================= */
+
   openModal(
     request.title,
-    `Solicitação • ${request.status.replaceAll('_',' ')}`,
+    `Solicitação • ${
+      statusLabels[request.status] ||
+      request.status.replaceAll('_',' ')
+    }`,
 
     `
-      <p class="muted">
-        ${esc(request.description)}
-      </p>
+      <div class="request-summary">
 
-      <div class="meta">
-        ${pill(request.priority)}
-        ${pill(request.status)}
+        <p>
+          ${esc(request.description || '')}
+        </p>
+
+        <div class="meta">
+
+          ${pill(request.priority)}
+
+          ${pill(request.status)}
+
+          ${
+            apartmentNumber
+              ? `
+                  <span class="pill gray">
+                    🏠 Apto. ${esc(apartmentNumber)}
+                  </span>
+                `
+              : ''
+          }
+
+        </div>
+
       </div>
 
       ${
         isAdmin()
           ? `
-              <div
-                class="field"
-                style="margin-top:18px"
-              >
+              <div class="request-status-box">
 
-                <label>
-                  Status
-                </label>
+                <div class="field">
 
-                <select id="requestStatus">
+                  <label>
+                    Status da solicitação
+                  </label>
 
-                  ${[
-                    ['aberta','Aberta'],
-                    ['em_analise','Em análise'],
-                    ['em_andamento','Em andamento'],
-                    ['aguardando_morador','Aguardando morador'],
-                    ['concluida','Concluída'],
-                    ['cancelada','Cancelada']
-                  ].map(
-                    option => `
+                  <select id="requestStatus">
+
+                    ${[
+                      ['aberta','Aberta'],
+                      ['em_analise','Em análise'],
+                      ['em_andamento','Em andamento'],
+                      ['aguardando_morador','Aguardando morador'],
+                      ['concluida','Concluída'],
+                      ['cancelada','Cancelada']
+                    ].map(option => `
                       <option
                         value="${option[0]}"
                         ${
@@ -3216,19 +3545,21 @@ async function openRequest(
                       >
                         ${option[1]}
                       </option>
-                    `
-                  ).join('')}
+                    `).join('')}
 
-                </select>
+                  </select>
+
+                </div>
+
+                <button
+                  id="saveRequestStatus"
+                  type="button"
+                  class="btn btn-secondary btn-small"
+                >
+                  Atualizar status
+                </button>
 
               </div>
-
-              <button
-                id="saveRequestStatus"
-                class="btn btn-secondary btn-small"
-              >
-                Atualizar status
-              </button>
             `
           : ''
       }
@@ -3237,139 +3568,87 @@ async function openRequest(
         Conversa
       </div>
 
-      <div class="request-thread">
-
-        ${
-  messages?.length
-    ? messages.map(
-        message => {
-
-    const author =
-      messageProfiles[
-        message.user_id
-      ];
-
-    const authorName =
-      author?.full_name ||
-      (
-        message.user_id === currentUser.id
-          ? currentProfile?.full_name
-          : 'Morador'
-      ) ||
-      'Morador';
-
-    const authorType =
-      author?.role === 'admin'
-        ? 'Administração'
-        : 'Morador';
-
-    const isMe =
-      message.user_id ===
-      currentUser.id;
-
-    return `
-      <div class="bubble ${
-        isMe
-          ? 'me'
-          : ''
-      }">
-
-        <div
-          style="
-            font-weight:700;
-            margin-bottom:2px;
-          "
-        >
-          ${esc(authorName)}
-          ${
-            isMe
-              ? `
-                <span
-                  style="
-                    font-weight:400;
-                    opacity:.65;
-                    font-size:11px;
-                  "
-                >
-                  • Você
-                </span>
-              `
-              : ''
-          }
-        </div>
-
-        <div
-          class="muted"
-          style="
-            font-size:11px;
-            margin-bottom:8px;
-          "
-        >
-          ${esc(authorType)}
-        </div>
-
-        <div
-          style="
-            white-space:pre-wrap;
-            word-break:break-word;
-          "
-        >
-          ${esc(message.message)}
-        </div>
-
-        <div
-          class="muted"
-          style="
-            margin-top:7px;
-            font-size:11px;
-          "
-        >
-          ${esc(
-            dateBR(
-              message.created_at
-            )
-          )}
-        </div>
-
-      </div>
-    `;
-  }
-).join('')
-            : `
-                <div class="empty">
-                  Nenhuma mensagem ainda.
-                </div>
-              `
-        }
-
+      <div
+        id="requestThread"
+        class="request-thread"
+      >
+        ${messagesHtml}
       </div>
 
       ${
-        ![
-          'concluida',
-          'cancelada'
-        ].includes(request.status)
+        !requestClosed
           ? `
-              <form id="messageForm">
+              <form
+                id="messageForm"
+                class="request-message-form"
+              >
 
-                <div class="field">
-                  <label>Nova mensagem</label>
+                <label
+                  for="requestMessage"
+                  style="
+                    display:block;
+                    font-size:12px;
+                    font-weight:700;
+                    margin-bottom:7px;
+                  "
+                >
+                  Responder
+                </label>
+
+                <div class="request-message-row">
+
                   <textarea
                     id="requestMessage"
+                    placeholder="Escreva uma mensagem..."
+                    maxlength="2000"
                     required
                   ></textarea>
-                </div>
 
-                <button class="btn btn-primary">
-                  Enviar mensagem
-                </button>
+                  <button
+                    id="sendRequestMessage"
+                    type="submit"
+                    class="btn btn-primary request-send-button"
+                  >
+                    Enviar
+                  </button>
+
+                </div>
 
               </form>
             `
-          : ''
+
+          : `
+              <div class="request-closed">
+                ${
+                  request.status === 'concluida'
+                    ? '✓ Esta solicitação foi concluída.'
+                    : 'Esta solicitação foi cancelada.'
+                }
+                O histórico da conversa permanece disponível.
+              </div>
+            `
       }
     `
   );
+
+  /* =========================
+     ROLA PARA ÚLTIMA MENSAGEM
+  ========================= */
+
+  const thread =
+    $('requestThread');
+
+  if (thread) {
+
+    requestAnimationFrame(() => {
+      thread.scrollTop =
+        thread.scrollHeight;
+    });
+  }
+
+  /* =========================
+     ATUALIZA STATUS
+  ========================= */
 
   if (
     isAdmin() &&
@@ -3379,42 +3658,38 @@ async function openRequest(
     $('saveRequestStatus').onclick =
       async () => {
 
+        const button =
+          $('saveRequestStatus');
+
         const status =
           v('requestStatus');
 
         const payload = {
-          status
+          status,
+          closed_at:
+            status === 'concluida'
+              ? new Date().toISOString()
+              : null
         };
 
-        if (
-          status === 'concluida'
-        ) {
-
-          payload.closed_at =
-            new Date()
-              .toISOString();
-
-        } else {
-
-          payload.closed_at =
-            null;
-        }
+        button.disabled = true;
+        button.textContent =
+          'Atualizando...';
 
         const {
           error
         } = await client
           .from('requests')
           .update(payload)
-          .eq(
-            'id',
-            request.id
-          );
+          .eq('id', request.id);
 
         if (error) {
 
-          alert(
-            error.message
-          );
+          button.disabled = false;
+          button.textContent =
+            'Atualizar status';
+
+          alert(error.message);
 
           return;
         }
@@ -3422,14 +3697,17 @@ async function openRequest(
         request.status =
           status;
 
-        closeModal(
-          'genericModal'
-        );
-
-        await loadRequests();
         await refreshDashboard();
+
+        await openRequest(
+          request
+        );
       };
   }
+
+  /* =========================
+     ENVIA MENSAGEM
+  ========================= */
 
   if ($('messageForm')) {
 
@@ -3445,29 +3723,37 @@ async function openRequest(
           return;
         }
 
+        const button =
+          $('sendRequestMessage');
+
+        button.disabled = true;
+        button.textContent =
+          'Enviando...';
+
         const {
           error
         } = await client
           .from('request_messages')
           .insert({
-
             request_id:
               request.id,
-
             user_id:
               currentUser.id,
-
             message
           });
 
         if (error) {
 
-          alert(
-            error.message
-          );
+          button.disabled = false;
+          button.textContent =
+            'Enviar';
+
+          alert(error.message);
 
           return;
         }
+
+        await refreshDashboard();
 
         await openRequest(
           request
@@ -6367,110 +6653,138 @@ async function loadNotifications() {
       return;
     }
 
-    $('notificationsList').innerHTML =
-      '';
+    $('notificationsList').innerHTML = '';
 
-    data.forEach(
-      notification => {
+    data.forEach(notification => {
 
-        const item =
-          document.createElement(
-            'div'
-          );
+      const item =
+        document.createElement('div');
 
-        item.className =
-          `list-item notification-item ${
-            notification.read_at
-              ? ''
-              : 'unread'
-          }`;
+      item.className =
+        `list-item notification-item ${
+          notification.read_at
+            ? ''
+            : 'unread'
+        }`;
 
-        item.innerHTML =
-          `
-            <div class="list-top">
+      item.style.cursor =
+        notification.reference_type
+          ? 'pointer'
+          : 'default';
 
-              <div>
+      item.innerHTML =
+        `
+          <div class="list-top">
 
-                <h4>
-                  ${esc(notification.title)}
-                </h4>
+            <div style="flex:1">
 
-                <p>
+              <h4>
+                ${esc(notification.title)}
+              </h4>
 
-                  ${esc(
-                    notification.message ||
-                    ''
-                  )}
+              <p>
 
-                  <br>
+                ${esc(
+                  notification.message ||
+                  ''
+                )}
 
+                <br>
+
+                <span class="muted">
                   ${esc(
                     dateBR(
                       notification.created_at
                     )
                   )}
+                </span>
 
-                </p>
-
-              </div>
+              </p>
 
               ${
-                !notification.read_at
+                notification.reference_type
                   ? `
-                      <button
-                        class="btn btn-secondary btn-small"
+                      <div
+                        style="
+                          margin-top:8px;
+                          font-size:12px;
+                          font-weight:700;
+                          color:#245c4d;
+                        "
                       >
-                        Marcar como lida
-                      </button>
+                        Abrir →
+                      </div>
                     `
-                  : `
-                      <span class="pill green">
-                        Lida
-                      </span>
-                    `
+                  : ''
               }
 
             </div>
-          `;
 
-        const button =
-          item.querySelector(
-            'button'
-          );
+            ${
+              !notification.read_at
+                ? `
+                    <button
+                      type="button"
+                      class="btn btn-secondary btn-small mark-read"
+                    >
+                      Marcar como lida
+                    </button>
+                  `
+                : `
+                    <span class="pill green">
+                      Lida
+                    </span>
+                  `
+            }
 
-        if (button) {
+          </div>
+        `;
 
-          button.onclick =
-            async () => {
+      /*
+        MARCAR COMO LIDA SEM ABRIR
+      */
 
-              const {
-                error
-              } = await client.rpc(
-                'mark_notification_read',
-                {
-                  p_notification_id:
-                    notification.id
-                }
-              );
+      const button =
+        item.querySelector(
+          '.mark-read'
+        );
 
-              if (error) {
+      if (button) {
 
-                alert(
-                  error.message
-                );
+        button.onclick =
+          async event => {
 
-                return;
-              }
+            event.stopPropagation();
 
-              await loadNotifications();
-              await refreshDashboard();
-            };
-        }
+            await markNotificationRead(
+              notification.id
+            );
 
-        $('notificationsList')
-          .appendChild(item);
+            await loadNotifications();
+            await refreshDashboard();
+          };
       }
-    );
+
+      /*
+        ABRIR DESTINO DA NOTIFICAÇÃO
+      */
+
+      if (
+        notification.reference_type
+      ) {
+
+        item.onclick =
+          async () => {
+
+            await openNotificationTarget(
+              notification
+            );
+          };
+      }
+
+      $('notificationsList')
+        .appendChild(item);
+    });
 
   } catch (error) {
 
@@ -6491,6 +6805,473 @@ async function loadNotifications() {
   }
 }
 
+
+/* =========================
+   MARCAR NOTIFICAÇÃO COMO LIDA
+========================= */
+
+async function markNotificationRead(
+  notificationId
+) {
+
+  if (!notificationId) {
+    return;
+  }
+
+  try {
+
+    const {
+      error
+    } = await client.rpc(
+      'mark_notification_read',
+      {
+        p_notification_id:
+          notificationId
+      }
+    );
+
+    if (error) {
+      throw error;
+    }
+
+  } catch (error) {
+
+    console.error(
+      'Erro ao marcar notificação como lida:',
+      error
+    );
+  }
+}
+
+
+/* =========================
+   ABRIR DESTINO DA NOTIFICAÇÃO
+========================= */
+
+async function openNotificationTarget(
+  notification
+) {
+
+  if (!notification) {
+    return;
+  }
+
+  /*
+    Marca como lida antes de abrir.
+  */
+
+  if (
+    notification.id &&
+    !notification.read_at
+  ) {
+
+    await markNotificationRead(
+      notification.id
+    );
+  }
+
+  const type =
+    String(
+      notification.reference_type ||
+      ''
+    )
+      .trim()
+      .toLowerCase();
+
+  const referenceId =
+    notification.reference_id
+      ? String(
+          notification.reference_id
+        )
+      : null;
+
+  try {
+
+    /*
+      SOLICITAÇÕES / MENSAGENS
+    */
+
+    if (
+      [
+        'request',
+        'requests',
+        'solicitacao',
+        'request_message',
+        'request_messages'
+      ].includes(type)
+    ) {
+
+      let requestId =
+        referenceId;
+
+      /*
+        Caso a referência seja uma mensagem,
+        descobrimos a solicitação dela.
+      */
+
+      if (
+        [
+          'request_message',
+          'request_messages'
+        ].includes(type) &&
+        referenceId
+      ) {
+
+        const {
+          data: requestMessage,
+          error: messageError
+        } = await client
+          .from('request_messages')
+          .select('request_id')
+          .eq(
+            'id',
+            referenceId
+          )
+          .maybeSingle();
+
+        if (messageError) {
+          throw messageError;
+        }
+
+        requestId =
+          requestMessage?.request_id ||
+          null;
+      }
+
+      if (!requestId) {
+
+        await openModule(
+          'requests'
+        );
+
+        return;
+      }
+
+      const {
+        data: request,
+        error: requestError
+      } = await client
+        .from('requests')
+        .select('*')
+        .eq(
+          'id',
+          requestId
+        )
+        .maybeSingle();
+
+      if (requestError) {
+        throw requestError;
+      }
+
+      if (request) {
+
+        await refreshDashboard();
+
+        await openRequest(
+          request
+        );
+
+        return;
+      }
+
+      await openModule(
+        'requests'
+      );
+
+      return;
+    }
+
+    /*
+      AVISOS
+    */
+
+    if (
+      [
+        'notice',
+        'notices',
+        'aviso'
+      ].includes(type)
+    ) {
+
+      await refreshDashboard();
+
+      await openModule(
+        'notices'
+      );
+
+      return;
+    }
+
+    /*
+      AGENDA
+    */
+
+    if (
+      [
+        'event',
+        'events',
+        'evento'
+      ].includes(type)
+    ) {
+
+      await refreshDashboard();
+
+      await openModule(
+        'events'
+      );
+
+      return;
+    }
+
+    /*
+      LIMPEZA
+    */
+
+    if (
+      [
+        'cleaning',
+        'cleaning_task',
+        'cleaning_tasks'
+      ].includes(type)
+    ) {
+
+      await refreshDashboard();
+
+      await openModule(
+        'cleaning'
+      );
+
+      return;
+    }
+
+    /*
+      MANUTENÇÃO
+    */
+
+    if (
+      [
+        'maintenance',
+        'maintenance_task',
+        'maintenance_tasks'
+      ].includes(type)
+    ) {
+
+      await refreshDashboard();
+
+      await openModule(
+        'maintenance'
+      );
+
+      return;
+    }
+
+    /*
+      METAS
+    */
+
+    if (
+      [
+        'goal',
+        'goals',
+        'meta'
+      ].includes(type)
+    ) {
+
+      await refreshDashboard();
+
+      await openModule(
+        'goals'
+      );
+
+      return;
+    }
+
+    /*
+      DOCUMENTOS
+    */
+
+    if (
+      [
+        'document',
+        'documents',
+        'documento'
+      ].includes(type)
+    ) {
+
+      await refreshDashboard();
+
+      await openModule(
+        'documents'
+      );
+
+      return;
+    }
+
+    /*
+      REFERÊNCIA DESCONHECIDA
+    */
+
+    await refreshDashboard();
+
+    await showNotifications();
+
+  } catch (error) {
+
+    console.error(
+      'Erro ao abrir destino da notificação:',
+      error
+    );
+
+    alert(
+      'Não foi possível abrir o conteúdo desta notificação.'
+    );
+
+    await refreshDashboard();
+  }
+}
+
+
+/* =========================
+   DESTINO VINDO DO PUSH
+========================= */
+
+async function openPushTarget(
+  type,
+  referenceId,
+  notificationId = null
+) {
+
+  if (!currentUser) {
+
+    localStorage.setItem(
+      'jacaranda_push_target',
+      JSON.stringify({
+        type:
+          type || '',
+        referenceId:
+          referenceId || null,
+        notificationId:
+          notificationId || null
+      })
+    );
+
+    return;
+  }
+
+  await openNotificationTarget({
+    id:
+      notificationId,
+    read_at:
+      null,
+    reference_type:
+      type,
+    reference_id:
+      referenceId
+  });
+}
+
+
+/* =========================
+   PROCESSAR DESTINO PENDENTE
+========================= */
+
+async function processPendingPushTarget() {
+
+  if (!currentUser) {
+    return;
+  }
+
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  let type =
+    params.get('pushType');
+
+  let referenceId =
+    params.get('pushRef');
+
+  let notificationId =
+    params.get('notificationId');
+
+  /*
+    Se o destino foi guardado antes
+    do login, recuperamos aqui.
+  */
+
+  if (!type) {
+
+    const saved =
+      localStorage.getItem(
+        'jacaranda_push_target'
+      );
+
+    if (saved) {
+
+      try {
+
+        const parsed =
+          JSON.parse(saved);
+
+        type =
+          parsed.type;
+
+        referenceId =
+          parsed.referenceId;
+
+        notificationId =
+          parsed.notificationId;
+
+      } catch (error) {
+
+        console.error(
+          'Destino Push inválido:',
+          error
+        );
+      }
+    }
+  }
+
+  if (!type) {
+    return;
+  }
+
+  localStorage.removeItem(
+    'jacaranda_push_target'
+  );
+
+  /*
+    Remove os parâmetros da URL
+    para não abrir novamente ao atualizar.
+  */
+
+  try {
+
+    const cleanUrl =
+      window.location.pathname +
+      window.location.hash;
+
+    window.history.replaceState(
+      {},
+      '',
+      cleanUrl
+    );
+
+  } catch (error) {
+
+    console.warn(
+      'Não foi possível limpar a URL:',
+      error
+    );
+  }
+
+  await openPushTarget(
+    type,
+    referenceId,
+    notificationId
+  );
+}
 
 $('readAllButton').onclick =
   async () => {
