@@ -865,6 +865,10 @@ footer{
 
     <div class="header-actions">
 
+      <button id="pushButton" class="header-btn" type="button" title="Ativar notificações no aparelho">
+        🔕 <span class="label">Ativar notificações</span>
+      </button>
+
       <button id="notificationButton" class="header-btn">
         🔔
         <span id="notificationBadge" class="badge hidden">0</span>
@@ -1253,6 +1257,9 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
   'sb_publishable_MRRBKe1owTJgHH9I3682Iw_-ymSHdEg';
 
+const VAPID_PUBLIC_KEY =
+  'BNZVXu9SliDTrJwLglUc_hn8p6TNXfRCuReJp4EyX3mLBhEHoLPZ2F2L8ta2-oK2UWmIsOA5h1yrtWg3C15zpCg';
+
 const client =
   window.supabase.createClient(
     SUPABASE_URL,
@@ -1627,6 +1634,8 @@ if (profile.role !== 'admin') {
     );
 
   showPortal();
+
+  refreshPushButton();
 }
 
 
@@ -5997,6 +6006,143 @@ $('inviteForm')
       }
     }
   );
+
+
+/* =========================
+   PUSH NOTIFICATIONS / PWA
+========================= */
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  return Uint8Array.from([...rawData].map(character => character.charCodeAt(0)));
+}
+
+function pushSupported() {
+  return (
+    'serviceWorker' in navigator &&
+    'PushManager' in window &&
+    'Notification' in window
+  );
+}
+
+async function savePushSubscription(subscription) {
+  if (!currentUser) {
+    throw new Error('Entre no portal antes de ativar as notificações.');
+  }
+
+  const json = subscription.toJSON();
+
+  if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) {
+    throw new Error('Não foi possível obter os dados da inscrição push.');
+  }
+
+  const { error } = await client
+    .from('push_subscriptions')
+    .upsert(
+      {
+        user_id: currentUser.id,
+        endpoint: json.endpoint,
+        p256dh: json.keys.p256dh,
+        auth: json.keys.auth,
+        user_agent: navigator.userAgent,
+        active: true
+      },
+      { onConflict: 'endpoint' }
+    );
+
+  if (error) throw error;
+}
+
+async function refreshPushButton() {
+  const button = $('pushButton');
+  if (!button) return;
+
+  if (!pushSupported()) {
+    button.innerHTML = '🔕 <span class="label">Push indisponível</span>';
+    button.disabled = true;
+    return;
+  }
+
+  if (Notification.permission === 'denied') {
+    button.innerHTML = '🚫 <span class="label">Notificações bloqueadas</span>';
+    button.disabled = false;
+    return;
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+
+    if (subscription) {
+      button.innerHTML = '🔔 <span class="label">Notificações ativas</span>';
+      await savePushSubscription(subscription);
+      return;
+    }
+  } catch (error) {
+    console.error('Status do Push:', error);
+  }
+
+  button.innerHTML = '🔕 <span class="label">Ativar notificações</span>';
+}
+
+async function activatePushNotifications() {
+  const button = $('pushButton');
+
+  if (!pushSupported()) {
+    alert('Este navegador não oferece suporte a notificações Push.');
+    return;
+  }
+
+  if (!currentUser) {
+    alert('Entre no portal antes de ativar as notificações.');
+    return;
+  }
+
+  button.disabled = true;
+  const originalHtml = button.innerHTML;
+  button.innerHTML = '⏳ <span class="label">Ativando...</span>';
+
+  try {
+    let permission = Notification.permission;
+
+    if (permission === 'default') {
+      permission = await Notification.requestPermission();
+    }
+
+    if (permission !== 'granted') {
+      throw new Error(
+        permission === 'denied'
+          ? 'As notificações foram bloqueadas neste aparelho. Libere a permissão nas configurações do navegador/PWA e tente novamente.'
+          : 'A permissão para notificações não foi concedida.'
+      );
+    }
+
+    const registration = await navigator.serviceWorker.ready;
+    let subscription = await registration.pushManager.getSubscription();
+
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+
+    await savePushSubscription(subscription);
+
+    button.innerHTML = '🔔 <span class="label">Notificações ativas</span>';
+    alert('Notificações ativadas neste aparelho.');
+  } catch (error) {
+    console.error('Ativação do Push:', error);
+    button.innerHTML = originalHtml;
+    alert(error.message || 'Não foi possível ativar as notificações.');
+  } finally {
+    button.disabled = false;
+  }
+}
+
+$('pushButton').onclick = activatePushNotifications;
 
 
 /* =========================
