@@ -1036,6 +1036,19 @@ footer{
     display:none
   }
 }
+
+/* =========================
+   STATUS DE CONEXÃO
+========================= */
+.connection-banner{
+  position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+  z-index:100000; width:min(92%,520px); padding:12px 16px;
+  border-radius:12px; background:#26332e; color:#fff;
+  text-align:center; font-size:13px; font-weight:700;
+  box-shadow:0 8px 24px #0003;
+}
+.connection-banner.online{ background:#245c4d; }
+
 </style>
 </head>
 
@@ -1576,6 +1589,8 @@ footer{
 
 </div>
 
+<div id="connectionBanner" class="connection-banner hidden" role="status" aria-live="polite"></div>
+
 <script>
 
 const SUPABASE_URL =
@@ -1632,6 +1647,58 @@ function clearMsg(element) {
   element.textContent = '';
   element.className = 'message';
 }
+
+
+function isNetworkError(error) {
+  const message = String(
+    error?.message || error?.details || error?.error_description || error || ''
+  ).toLowerCase();
+
+  return !navigator.onLine ||
+    message.includes('failed to fetch') ||
+    message.includes('networkerror') ||
+    message.includes('network request failed') ||
+    message.includes('load failed') ||
+    message.includes('fetch failed');
+}
+
+function friendlyError(error, fallback = 'Não foi possível concluir a operação. Tente novamente.') {
+  if (!navigator.onLine) {
+    return 'Sem conexão com a internet. Verifique sua conexão e tente novamente.';
+  }
+  if (isNetworkError(error)) {
+    return 'Não foi possível conectar ao portal. Tente novamente em alguns instantes.';
+  }
+  return error?.message || fallback;
+}
+
+let connectionBannerTimer = null;
+
+function showConnectionBanner(text, online = false) {
+  const banner = $('connectionBanner');
+  if (!banner) return;
+  clearTimeout(connectionBannerTimer);
+  banner.textContent = text;
+  banner.classList.remove('hidden', 'online');
+
+  if (online) {
+    banner.classList.add('online');
+    connectionBannerTimer = setTimeout(() => {
+      banner.classList.add('hidden');
+      banner.classList.remove('online');
+    }, 3000);
+  }
+}
+
+window.addEventListener('offline', () => {
+  showConnectionBanner(
+    'Sem conexão com a internet. Verifique sua conexão e tente novamente.'
+  );
+});
+
+window.addEventListener('online', () => {
+  showConnectionBanner('Conexão restabelecida.', true);
+});
 
 function dateBR(value) {
 
@@ -3566,7 +3633,7 @@ async function openRequest(request) {
     .order('created_at');
 
   if (error) {
-    alert(error.message);
+    alert(friendlyError(error));
     return;
   }
 
@@ -3882,7 +3949,7 @@ async function openRequest(request) {
       if (error) {
         button.disabled = false;
         button.textContent = 'Atualizar status';
-        alert(error.message);
+        alert(friendlyError(error));
         return;
       }
 
