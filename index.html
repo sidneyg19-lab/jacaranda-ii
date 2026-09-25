@@ -913,11 +913,6 @@ footer{
       <form id="signupForm">
 
         <div class="field">
-          <label>Nome completo</label>
-          <input id="signupName" required>
-        </div>
-
-        <div class="field">
           <label>E-mail</label>
           <input id="signupEmail" type="email" required>
         </div>
@@ -1901,10 +1896,8 @@ $('signupForm').addEventListener(
     $('signupButton').disabled =
       true;
 
-    const name =
-      $('signupName')
-        .value
-        .trim();
+    $('signupButton').textContent =
+      'Validando convite...';
 
     const email =
       $('signupEmail')
@@ -1924,6 +1917,59 @@ $('signupForm').addEventListener(
 
     try {
 
+      /*
+        PRIMEIRA BARREIRA:
+        valida e-mail + código antes de tentar criar
+        qualquer usuário no Supabase Auth.
+      */
+      const {
+        data: inviteRows,
+        error: inviteError
+      } = await client.rpc(
+        'validate_resident_invite',
+        {
+          p_email:email,
+          p_code:code
+        }
+      );
+
+      if (inviteError) {
+        throw new Error(
+          'Não foi possível validar o convite. Tente novamente.'
+        );
+      }
+
+      const invite =
+        Array.isArray(inviteRows)
+          ? inviteRows[0]
+          : inviteRows;
+
+      if (!invite?.valid) {
+        throw new Error(
+          invite?.message ||
+          'Convite inválido ou não corresponde ao e-mail informado.'
+        );
+      }
+
+      const fullName =
+        String(invite.full_name || '')
+          .trim();
+
+      if (!fullName) {
+        throw new Error(
+          'O convite não possui um nome válido. Solicite um novo convite à administração.'
+        );
+      }
+
+      $('signupButton').textContent =
+        'Criando conta...';
+
+      /*
+        SEGUNDA BARREIRA:
+        invite_code segue no user_metadata para o
+        Before User Created Hook validar novamente
+        no servidor quando ele estiver ativado.
+      */
       const {
         data,
         error
@@ -1933,13 +1979,14 @@ $('signupForm').addEventListener(
         password,
 
         options: {
-  emailRedirectTo:
-    'https://sidneyg19-lab.github.io/jacaranda-ii/',
+          emailRedirectTo:
+            'https://sidneyg19-lab.github.io/jacaranda-ii/',
 
-  data: {
-    full_name:name
-  }
-}
+          data: {
+            full_name:fullName,
+            invite_code:code
+          }
+        }
 
       });
 
@@ -1981,7 +2028,7 @@ $('signupForm').addEventListener(
 
         msg(
           $('signupMessage'),
-          'Conta criada. Verifique seu e-mail e depois entre normalmente para concluir o vínculo.',
+          `Conta criada para ${fullName}. Verifique seu e-mail e depois entre normalmente para concluir o vínculo.`,
           'success'
         );
       }
@@ -2000,10 +2047,12 @@ $('signupForm').addEventListener(
 
       $('signupButton').disabled =
         false;
+
+      $('signupButton').textContent =
+        'Criar minha conta';
     }
   }
 );
-
 
 /* =========================
    ACEITAR CONVITE
