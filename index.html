@@ -22,7 +22,13 @@
       color: #1d2925;
     }
 
-    /* LOGIN */
+    button {
+      font-family: inherit;
+    }
+
+    /* =========================
+       LOGIN
+    ========================== */
 
     #loginScreen {
       min-height: 100vh;
@@ -118,7 +124,9 @@
       font-size: 13px;
     }
 
-    /* PORTAL */
+    /* =========================
+       PORTAL
+    ========================== */
 
     #portal {
       display: none;
@@ -252,6 +260,10 @@
       margin: 26px 0 12px;
     }
 
+    /* =========================
+       CARDS
+    ========================== */
+
     .grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -290,6 +302,10 @@
       color: #7a8581;
     }
 
+    /* =========================
+       ÚLTIMO AVISO
+    ========================== */
+
     .notice {
       background: #fff;
       border-left: 4px solid #245c4d;
@@ -312,6 +328,123 @@
       color: #74807c;
     }
 
+    /* =========================
+       GESTÃO DE MORADORES
+    ========================== */
+
+    #residentsPanel {
+      display: none;
+    }
+
+    .residents-header {
+      background: white;
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 3px 15px rgba(0,0,0,.04);
+      border: 1px solid #edf0ef;
+    }
+
+    .residents-header h2 {
+      font-size: 19px;
+      margin-bottom: 5px;
+    }
+
+    .residents-header p {
+      color: #74807c;
+      font-size: 13px;
+    }
+
+    .secondary-button {
+      border: 1px solid #dce2df;
+      background: white;
+      color: #245c4d;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .secondary-button:hover {
+      background: #f4f8f6;
+    }
+
+    .apartments-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .apartment-card {
+      background: white;
+      border: 1px solid #edf0ef;
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 3px 15px rgba(0,0,0,.04);
+      transition: .2s;
+    }
+
+    .apartment-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 7px 20px rgba(0,0,0,.07);
+    }
+
+    .apartment-number {
+      font-size: 19px;
+      font-weight: bold;
+      color: #163c32;
+      margin-bottom: 7px;
+    }
+
+    .apartment-floor {
+      font-size: 12px;
+      color: #7a8581;
+      margin-bottom: 15px;
+    }
+
+    .apartment-info {
+      padding-top: 12px;
+      border-top: 1px solid #edf0ef;
+      font-size: 13px;
+      color: #56615d;
+    }
+
+    .status-active {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 10px;
+      background: #e8f2ed;
+      color: #245c4d;
+      border-radius: 20px;
+      padding: 5px 8px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    .loading-text {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      color: #74807c;
+      font-size: 14px;
+      grid-column: 1 / -1;
+    }
+
+    .error-box {
+      background: #fff3f3;
+      color: #a63e3e;
+      border: 1px solid #f0d0d0;
+      border-radius: 12px;
+      padding: 15px;
+      grid-column: 1 / -1;
+      font-size: 13px;
+    }
+
     footer {
       text-align: center;
       color: #89938f;
@@ -319,8 +452,13 @@
       padding: 25px;
     }
 
+    /* =========================
+       RESPONSIVO
+    ========================== */
+
     @media (max-width: 800px) {
-      .grid {
+      .grid,
+      .apartments-grid {
         grid-template-columns: repeat(2, 1fr);
       }
     }
@@ -355,13 +493,24 @@
         min-height: 135px;
         padding: 17px 14px;
       }
+
+      .apartments-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .residents-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
+<!-- =========================
+     LOGIN
+========================== -->
 
 <section id="loginScreen">
 
@@ -412,161 +561,218 @@
 </section>
 
 
-<!-- PORTAL -->
+<!-- =========================
+     PORTAL
+========================== -->
 
 <div id="portal">
 
-<header>
+  <header>
 
-  <div class="header-content">
+    <div class="header-content">
 
-    <div class="brand">
+      <div class="brand">
 
-      <div class="logo">🌿</div>
+        <div class="logo">🌿</div>
 
-      <div>
-        <h1>Condomínio Jacarandá II</h1>
-        <p>Portal do Morador</p>
+        <div>
+          <h1>Condomínio Jacarandá II</h1>
+          <p>Portal do Morador</p>
+        </div>
+
+      </div>
+
+      <div class="header-actions">
+
+        <div class="notification">
+          🔔
+          <div class="badge">2</div>
+        </div>
+
+        <button
+          class="logout"
+          id="logoutButton"
+        >
+          Sair
+        </button>
+
       </div>
 
     </div>
 
-    <div class="header-actions">
+  </header>
 
-      <div class="notification">
-        🔔
-        <div class="badge">2</div>
+
+  <main>
+
+    <!-- HOME -->
+
+    <div id="homeView">
+
+      <div class="welcome">
+
+        <h2 id="welcomeName">
+          Olá! 👋
+        </h2>
+
+        <p>
+          Acompanhe avisos, serviços e informações do condomínio.
+        </p>
+
+        <span
+          class="user-role"
+          id="userRole"
+        ></span>
+
       </div>
 
-      <button
-        class="logout"
-        id="logoutButton"
+
+      <div class="section-title">
+        Acesso rápido
+      </div>
+
+
+      <div class="grid">
+
+        <div class="card">
+          <div class="icon">📢</div>
+          <h3>Avisos</h3>
+          <p>Comunicados importantes do condomínio.</p>
+        </div>
+
+        <div class="card">
+          <div class="icon">📝</div>
+          <h3>Solicitações</h3>
+          <p>Abra e acompanhe solicitações.</p>
+        </div>
+
+        <div class="card">
+          <div class="icon">📅</div>
+          <h3>Agenda</h3>
+          <p>Reformas, visitas e serviços agendados.</p>
+        </div>
+
+        <div class="card">
+          <div class="icon">🧹</div>
+          <h3>Limpeza</h3>
+          <p>Acompanhe a programação de limpeza.</p>
+        </div>
+
+        <div class="card">
+          <div class="icon">🔧</div>
+          <h3>Manutenções</h3>
+          <p>Serviços e manutenções do condomínio.</p>
+        </div>
+
+        <div class="card">
+          <div class="icon">🎯</div>
+          <h3>Metas</h3>
+          <p>Melhorias planejadas e andamento.</p>
+        </div>
+
+        <div
+          class="card"
+          id="residentsCard"
+          style="display:none"
+        >
+          <div class="icon">👥</div>
+          <h3>Moradores</h3>
+          <p>Cadastro dos apartamentos e moradores.</p>
+        </div>
+
+        <div class="card">
+          <div class="icon">📁</div>
+          <h3>Documentos</h3>
+          <p>Documentos e arquivos importantes.</p>
+        </div>
+
+      </div>
+
+
+      <div class="section-title">
+        Último aviso
+      </div>
+
+      <div class="notice">
+
+        <div style="font-size:24px">
+          📢
+        </div>
+
+        <div>
+
+          <strong>
+            Bem-vindo ao Portal do Jacarandá II
+          </strong>
+
+          <span>
+            Os comunicados do condomínio aparecerão aqui.
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+         MORADORES
+    ========================== -->
+
+    <section id="residentsPanel">
+
+      <div class="section-title">
+        Administração
+      </div>
+
+      <div class="residents-header">
+
+        <div>
+          <h2>👥 Gestão de moradores</h2>
+          <p>
+            Consulte os apartamentos e gerencie os moradores
+            do Condomínio Jacarandá II.
+          </p>
+        </div>
+
+        <button
+          id="closeResidents"
+          class="secondary-button"
+        >
+          ← Voltar
+        </button>
+
+      </div>
+
+      <div
+        id="apartmentsGrid"
+        class="apartments-grid"
       >
-        Sair
-      </button>
 
-    </div>
+        <div class="loading-text">
+          Carregando apartamentos...
+        </div>
 
-  </div>
+      </div>
 
-</header>
+    </section>
 
-
-<main>
-
-  <div class="welcome">
-
-    <h2 id="welcomeName">
-      Olá! 👋
-    </h2>
-
-    <p>
-      Acompanhe avisos, serviços e informações do condomínio.
-    </p>
-
-    <span
-      class="user-role"
-      id="userRole"
-    ></span>
-
-  </div>
+  </main>
 
 
-  <div class="section-title">
-    Acesso rápido
-  </div>
-
-
-  <div class="grid">
-
-    <div class="card">
-      <div class="icon">📢</div>
-      <h3>Avisos</h3>
-      <p>Comunicados importantes do condomínio.</p>
-    </div>
-
-    <div class="card">
-      <div class="icon">📝</div>
-      <h3>Solicitações</h3>
-      <p>Abra e acompanhe solicitações.</p>
-    </div>
-
-    <div class="card">
-      <div class="icon">📅</div>
-      <h3>Agenda</h3>
-      <p>Reformas, visitas e serviços agendados.</p>
-    </div>
-
-    <div class="card">
-      <div class="icon">🧹</div>
-      <h3>Limpeza</h3>
-      <p>Acompanhe a programação de limpeza.</p>
-    </div>
-
-    <div class="card">
-      <div class="icon">🔧</div>
-      <h3>Manutenções</h3>
-      <p>Serviços e manutenções do condomínio.</p>
-    </div>
-
-    <div class="card">
-      <div class="icon">🎯</div>
-      <h3>Metas</h3>
-      <p>Melhorias planejadas e andamento.</p>
-    </div>
-
-    <div
-      class="card"
-      id="residentsCard"
-      style="display:none"
-    >
-      <div class="icon">👥</div>
-      <h3>Moradores</h3>
-      <p>Cadastro dos apartamentos e moradores.</p>
-    </div>
-
-    <div class="card">
-      <div class="icon">📁</div>
-      <h3>Documentos</h3>
-      <p>Documentos e arquivos importantes.</p>
-    </div>
-
-  </div>
-
-
-  <div class="section-title">
-    Último aviso
-  </div>
-
-  <div class="notice">
-
-    <div style="font-size:24px">
-      📢
-    </div>
-
-    <div>
-      <strong>
-        Bem-vindo ao Portal do Jacarandá II
-      </strong>
-
-      <span>
-        Os comunicados do condomínio aparecerão aqui.
-      </span>
-    </div>
-
-  </div>
-
-</main>
-
-
-<footer>
-  Condomínio Jacarandá II • Portal do Morador
-</footer>
+  <footer>
+    Condomínio Jacarandá II • Portal do Morador
+  </footer>
 
 </div>
 
 
 <script>
+
+/* =========================
+   SUPABASE
+========================== */
 
 const SUPABASE_URL =
   'https://jfajhljoockoneeunzfm.supabase.co';
@@ -580,6 +786,10 @@ const client =
     SUPABASE_KEY
   );
 
+
+/* =========================
+   ELEMENTOS
+========================== */
 
 const loginScreen =
   document.getElementById('loginScreen');
@@ -596,6 +806,25 @@ const loginButton =
 const loginMessage =
   document.getElementById('loginMessage');
 
+const residentsCard =
+  document.getElementById('residentsCard');
+
+const residentsPanel =
+  document.getElementById('residentsPanel');
+
+const homeView =
+  document.getElementById('homeView');
+
+const apartmentsGrid =
+  document.getElementById('apartmentsGrid');
+
+const closeResidents =
+  document.getElementById('closeResidents');
+
+
+/* =========================
+   CARREGAR PORTAL
+========================== */
 
 async function loadPortal(user) {
 
@@ -606,7 +835,13 @@ async function loadPortal(user) {
       .eq('id', user.id)
       .single();
 
+
   if (error || !profile) {
+
+    console.error(
+      'Erro ao carregar perfil:',
+      error
+    );
 
     await client.auth.signOut();
 
@@ -650,18 +885,23 @@ async function loadPortal(user) {
       : 'Morador';
 
 
-  document.getElementById(
-    'residentsCard'
-  ).style.display =
+  residentsCard.style.display =
     profile.role === 'admin'
       ? 'block'
       : 'none';
 
 
+  residentsPanel.style.display = 'none';
+  homeView.style.display = 'block';
+
   loginScreen.style.display = 'none';
   portal.style.display = 'block';
 }
 
+
+/* =========================
+   LOGIN
+========================== */
 
 function showLogin() {
 
@@ -679,7 +919,8 @@ loginForm.addEventListener(
     loginMessage.textContent = '';
 
     loginButton.disabled = true;
-    loginButton.textContent = 'Entrando...';
+    loginButton.textContent =
+      'Entrando...';
 
 
     const email =
@@ -688,38 +929,62 @@ loginForm.addEventListener(
         .value
         .trim();
 
+
     const password =
       document
         .getElementById('password')
         .value;
 
 
-    const { data, error } =
-      await client.auth.signInWithPassword({
-        email,
-        password
-      });
+    try {
+
+      const { data, error } =
+        await client.auth.signInWithPassword({
+          email,
+          password
+        });
 
 
-    if (error) {
+      if (error) {
+
+        loginMessage.textContent =
+          'E-mail ou senha inválidos.';
+
+        return;
+      }
+
+
+      if (!data.user) {
+
+        loginMessage.textContent =
+          'Não foi possível identificar o usuário.';
+
+        return;
+      }
+
+
+      await loadPortal(data.user);
+
+    } catch (error) {
+
+      console.error(error);
 
       loginMessage.textContent =
-        'E-mail ou senha inválidos.';
+        'Ocorreu um erro ao entrar. Tente novamente.';
+
+    } finally {
 
       loginButton.disabled = false;
       loginButton.textContent = 'Entrar';
-
-      return;
     }
 
-
-    await loadPortal(data.user);
-
-    loginButton.disabled = false;
-    loginButton.textContent = 'Entrar';
   }
 );
 
+
+/* =========================
+   LOGOUT
+========================== */
 
 document
   .getElementById('logoutButton')
@@ -729,26 +994,202 @@ document
 
       await client.auth.signOut();
 
+      loginForm.reset();
+
+      residentsPanel.style.display = 'none';
+      homeView.style.display = 'block';
+
       showLogin();
     }
   );
 
 
-async function initialize() {
+/* =========================
+   ABRIR MORADORES
+========================== */
 
-  const { data } =
-    await client.auth.getSession();
+residentsCard.addEventListener(
+  'click',
+  async function() {
 
-  if (
-    data.session &&
-    data.session.user
-  ) {
+    homeView.style.display = 'none';
+    residentsPanel.style.display = 'block';
 
-    await loadPortal(
-      data.session.user
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+
+    await loadApartments();
+  }
+);
+
+
+/* =========================
+   VOLTAR AO INÍCIO
+========================== */
+
+closeResidents.addEventListener(
+  'click',
+  function() {
+
+    residentsPanel.style.display = 'none';
+    homeView.style.display = 'block';
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }
+);
+
+
+/* =========================
+   CARREGAR APARTAMENTOS
+========================== */
+
+async function loadApartments() {
+
+  apartmentsGrid.innerHTML =
+    `
+      <div class="loading-text">
+        Carregando apartamentos...
+      </div>
+    `;
+
+
+  const { data, error } =
+    await client
+      .from('apartments')
+      .select('*')
+      .eq('active', true)
+      .order('number');
+
+
+  if (error) {
+
+    console.error(
+      'Erro ao carregar apartamentos:',
+      error
     );
 
-  } else {
+    apartmentsGrid.innerHTML =
+      `
+        <div class="error-box">
+          Não foi possível carregar os apartamentos.
+        </div>
+      `;
+
+    return;
+  }
+
+
+  if (!data || data.length === 0) {
+
+    apartmentsGrid.innerHTML =
+      `
+        <div class="loading-text">
+          Nenhum apartamento encontrado.
+        </div>
+      `;
+
+    return;
+  }
+
+
+  apartmentsGrid.innerHTML = '';
+
+
+  data.forEach(
+    function(apartment) {
+
+      const card =
+        document.createElement('div');
+
+      card.className =
+        'apartment-card';
+
+
+      const apartmentNumber =
+        apartment.number ?? '-';
+
+
+      const floor =
+        apartment.floor ?? '-';
+
+
+      card.innerHTML =
+        `
+          <div class="apartment-number">
+            🏠 Apartamento ${apartmentNumber}
+          </div>
+
+          <div class="apartment-floor">
+            ${floor}º andar
+          </div>
+
+          <div class="apartment-info">
+
+            Apartamento cadastrado
+
+            <br>
+
+            <span class="status-active">
+              ● Ativo
+            </span>
+
+          </div>
+        `;
+
+
+      apartmentsGrid.appendChild(card);
+    }
+  );
+}
+
+
+/* =========================
+   INICIALIZAÇÃO
+========================== */
+
+async function initialize() {
+
+  try {
+
+    const { data, error } =
+      await client.auth.getSession();
+
+
+    if (error) {
+
+      console.error(
+        'Erro ao verificar sessão:',
+        error
+      );
+
+      showLogin();
+
+      return;
+    }
+
+
+    if (
+      data.session &&
+      data.session.user
+    ) {
+
+      await loadPortal(
+        data.session.user
+      );
+
+    } else {
+
+      showLogin();
+    }
+
+  } catch (error) {
+
+    console.error(error);
 
     showLogin();
   }
