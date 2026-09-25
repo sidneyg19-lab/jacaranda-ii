@@ -865,10 +865,6 @@ footer{
 
     <div class="header-actions">
 
-      <button id="pushButton" class="header-btn" type="button" title="Ativar notificações no aparelho">
-        🔕 <span class="label">Ativar notificações</span>
-      </button>
-
       <button id="notificationButton" class="header-btn">
         🔔
         <span id="notificationBadge" class="badge hidden">0</span>
@@ -1132,6 +1128,26 @@ footer{
 
     </div>
 
+  </div>
+
+  <div class="panel" style="margin-bottom:14px">
+    <div class="list-top">
+      <div>
+        <h4 style="margin-bottom:5px">📲 Notificações no aparelho</h4>
+        <p class="muted">
+          Receba avisos do condomínio mesmo quando o aplicativo estiver fechado.
+        </p>
+      </div>
+
+      <button
+        id="pushButton"
+        class="btn btn-secondary"
+        type="button"
+        title="Ativar notificações neste aparelho"
+      >
+        🔕 Ativar notificações
+      </button>
+    </div>
   </div>
 
   <div id="notificationsList" class="list"></div>
@@ -6060,13 +6076,13 @@ async function refreshPushButton() {
   if (!button) return;
 
   if (!pushSupported()) {
-    button.innerHTML = '🔕 <span class="label">Push indisponível</span>';
+    button.innerHTML = '🔕 Push indisponível';
     button.disabled = true;
     return;
   }
 
   if (Notification.permission === 'denied') {
-    button.innerHTML = '🚫 <span class="label">Notificações bloqueadas</span>';
+    button.innerHTML = '🚫 Notificações bloqueadas';
     button.disabled = false;
     return;
   }
@@ -6076,7 +6092,7 @@ async function refreshPushButton() {
     const subscription = await registration.pushManager.getSubscription();
 
     if (subscription) {
-      button.innerHTML = '🔔 <span class="label">Notificações ativas</span>';
+      button.innerHTML = '🔔 Notificações ativas';
       await savePushSubscription(subscription);
       return;
     }
@@ -6084,7 +6100,7 @@ async function refreshPushButton() {
     console.error('Status do Push:', error);
   }
 
-  button.innerHTML = '🔕 <span class="label">Ativar notificações</span>';
+  button.innerHTML = '🔕 Ativar notificações';
 }
 
 async function activatePushNotifications() {
@@ -6102,7 +6118,7 @@ async function activatePushNotifications() {
 
   button.disabled = true;
   const originalHtml = button.innerHTML;
-  button.innerHTML = '⏳ <span class="label">Ativando...</span>';
+  button.innerHTML = '⏳ Ativando...';
 
   try {
     let permission = Notification.permission;
@@ -6131,7 +6147,7 @@ async function activatePushNotifications() {
 
     await savePushSubscription(subscription);
 
-    button.innerHTML = '🔔 <span class="label">Notificações ativas</span>';
+    button.innerHTML = '🔔 Notificações ativas';
     alert('Notificações ativadas neste aparelho.');
   } catch (error) {
     console.error('Ativação do Push:', error);
@@ -6161,6 +6177,7 @@ async function showNotifications() {
     .classList
     .remove('hidden');
 
+  await refreshPushButton();
   await loadNotifications();
 
   window.scrollTo({
