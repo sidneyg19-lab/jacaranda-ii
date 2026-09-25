@@ -3260,12 +3260,14 @@ async function openRequest(request) {
   if (messageUsers.length) {
 
     const {
-      data: profiles,
-      error: profilesError
-    } = await client
-      .from('profiles')
-      .select('id, full_name, role')
-      .in('id', messageUsers);
+  data: profiles,
+  error: profilesError
+} = await client.rpc(
+  'get_message_author_profiles',
+  {
+    p_user_ids: messageUsers
+  }
+);
 
     if (profilesError) {
 
