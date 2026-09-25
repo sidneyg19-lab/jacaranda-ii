@@ -1093,6 +1093,13 @@ footer{
       <p>Documentos e arquivos importantes.</p>
     </div>
 
+    <div class="card" data-module="feedback">
+      <span id="countFeedback" class="card-count">0</span>
+      <div class="icon">💡</div>
+      <h3>Feedback</h3>
+      <p>Envie sugestões, problemas ou elogios sobre o portal.</p>
+    </div>
+
   </div>
 
   <div class="section-title">
@@ -2149,6 +2156,16 @@ async function refreshDashboard() {
       $('countResidents').textContent =
         data.residents ?? 0;
 
+      const feedbackCountResult =
+        await client
+          .from('portal_feedback')
+          .select('id', { count:'exact', head:true });
+
+      if (!feedbackCountResult.error) {
+        $('countFeedback').textContent =
+          feedbackCountResult.count ?? 0;
+      }
+
       const notificationCount =
         Number(
           data.notifications || 0
@@ -2466,6 +2483,15 @@ const modules = {
     subtitle:
       'Arquivos e documentos importantes.',
     table:'documents'
+  },
+
+  feedback:{
+    title:'💡 Feedback do Portal',
+    subtitle:
+      isAdmin()
+        ? 'Acompanhe sugestões, problemas e elogios enviados pelos moradores.'
+        : 'Ajude a melhorar o portal com sugestões, problemas ou elogios.',
+    table:'portal_feedback'
   }
 
 };
@@ -2505,6 +2531,7 @@ async function openModule(name) {
 
   const canCreate =
     name === 'requests' ||
+    name === 'feedback' ||
     isAdmin();
 
   $('moduleNewButton')
@@ -2517,7 +2544,9 @@ async function openModule(name) {
   $('moduleNewButton').textContent =
     name === 'requests'
       ? '+ Nova solicitação'
-      : '+ Novo';
+      : name === 'feedback'
+        ? '+ Enviar feedback'
+        : '+ Novo';
 
   await loadModule();
 
@@ -2561,6 +2590,10 @@ $('moduleNewButton').onclick =
 
       case 'documents':
         documentForm();
+        break;
+
+      case 'feedback':
+        feedbackForm();
         break;
     }
   };
@@ -2611,6 +2644,10 @@ async function loadModule() {
 
       case 'documents':
         await loadDocuments();
+        break;
+
+      case 'feedback':
+        await loadFeedback();
         break;
     }
 
@@ -5235,6 +5272,530 @@ async function deleteDocument(
       'Não foi possível excluir o documento.'
     );
   }
+}
+
+
+/* =========================
+   FEEDBACK DO PORTAL
+========================= */
+
+function feedbackTypeLabel(value) {
+
+  return ({
+    sugestao:'Sugestão',
+    problema:'Problema no portal',
+    elogio:'Elogio'
+  })[value] || value || 'Feedback';
+}
+
+
+function feedbackStatusLabel(value) {
+
+  return ({
+    novo:'Novo',
+    em_analise:'Em análise',
+    planejado:'Planejado',
+    implementado:'Implementado',
+    descartado:'Descartado'
+  })[value] || value || 'Novo';
+}
+
+
+async function loadFeedback() {
+
+  const {
+    data,
+    error
+  } = await client
+    .from('portal_feedback')
+    .select(`
+      id,
+      user_id,
+      apartment_id,
+      type,
+      title,
+      description,
+      status,
+      admin_notes,
+      created_at,
+      updated_at,
+      apartments (
+        number
+      )
+    `)
+    .order(
+      'created_at',
+      {
+        ascending:false
+      }
+    );
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data?.length) {
+
+    $('moduleList').innerHTML =
+      `
+        <div class="empty">
+          ${
+            isAdmin()
+              ? 'Nenhum feedback recebido até o momento.'
+              : 'Você ainda não enviou nenhum feedback.'
+          }
+        </div>
+      `;
+
+    return;
+  }
+
+  const profileMap = {};
+
+  if (isAdmin()) {
+
+    const userIds = [
+      ...new Set(
+        data
+          .map(item => item.user_id)
+          .filter(Boolean)
+      )
+    ];
+
+    if (userIds.length) {
+
+      const {
+        data: profiles,
+        error: profilesError
+      } = await client.rpc(
+        'get_message_author_profiles',
+        {
+          p_user_ids:userIds
+        }
+      );
+
+      if (profilesError) {
+
+        console.error(
+          'Erro ao carregar autores dos feedbacks:',
+          profilesError
+        );
+
+      } else {
+
+        (profiles || []).forEach(
+          profile => {
+            profileMap[profile.id] = profile;
+          }
+        );
+      }
+    }
+  }
+
+  $('moduleList').innerHTML = '';
+
+  data.forEach(item => {
+
+    const div =
+      document.createElement('div');
+
+    div.className =
+      'list-item';
+
+    const author =
+      profileMap[item.user_id];
+
+    const authorName =
+      isAdmin()
+        ? author?.full_name || 'Morador'
+        : 'Você';
+
+    const apartmentNumber =
+      item.apartments?.number || '-';
+
+    div.innerHTML =
+      `
+        <div class="list-top">
+
+          <div style="flex:1;min-width:0">
+
+            <h4>
+              ${esc(item.title)}
+            </h4>
+
+            <p style="white-space:pre-wrap">
+              ${esc(item.description)}
+            </p>
+
+            <div class="meta">
+              <span class="pill gray">
+                ${esc(feedbackTypeLabel(item.type))}
+              </span>
+
+              ${pill(item.status)}
+            </div>
+
+            <p style="margin-top:10px">
+              ${
+                isAdmin()
+                  ? `${esc(authorName)} • Apartamento ${esc(apartmentNumber)} • `
+                  : `Apartamento ${esc(apartmentNumber)} • `
+              }
+              ${esc(dateBR(item.created_at))}
+            </p>
+
+            ${
+              item.admin_notes
+                ? `
+                    <div style="
+                      margin-top:10px;
+                      padding:10px 12px;
+                      background:#f7f9f8;
+                      border-radius:10px;
+                      border:1px solid #e5ebe8;
+                    ">
+                      <strong style="font-size:12px">
+                        Observação da administração
+                      </strong>
+                      <p style="margin-top:4px;white-space:pre-wrap">
+                        ${esc(item.admin_notes)}
+                      </p>
+                    </div>
+                  `
+                : ''
+            }
+
+          </div>
+
+          ${
+            isAdmin()
+              ? `
+                  <div class="actions">
+                    <button
+                      class="btn btn-secondary btn-small manage-feedback"
+                      type="button"
+                    >
+                      Gerenciar
+                    </button>
+                  </div>
+                `
+              : ''
+          }
+
+        </div>
+      `;
+
+    if (isAdmin()) {
+
+      div.querySelector(
+        '.manage-feedback'
+      ).onclick =
+        () => feedbackAdminForm(item);
+    }
+
+    $('moduleList')
+      .appendChild(div);
+  });
+}
+
+
+async function feedbackForm() {
+
+  const {
+    data: apartments,
+    error
+  } = await client.rpc(
+    'get_my_apartments'
+  );
+
+  if (error) {
+
+    alert(
+      error.message
+    );
+
+    return;
+  }
+
+  const available =
+    apartments || [];
+
+  if (!available.length) {
+
+    alert(
+      'Sua conta precisa estar vinculada a um apartamento para enviar feedback.'
+    );
+
+    return;
+  }
+
+  openModal(
+    'Enviar feedback',
+    'Conte o que podemos melhorar no Portal do Jacarandá II.',
+    `
+      <form id="feedbackForm">
+
+        <div class="form-grid">
+
+          <div class="field">
+            <label>Apartamento</label>
+            <select id="feedbackApartment" required>
+              ${available.map(
+                apartment => `
+                  <option value="${apartment.apartment_id}">
+                    Apartamento ${esc(apartment.apartment_number)}
+                  </option>
+                `
+              ).join('')}
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Tipo</label>
+            <select id="feedbackType" required>
+              <option value="sugestao">Sugestão</option>
+              <option value="problema">Problema no portal</option>
+              <option value="elogio">Elogio</option>
+            </select>
+          </div>
+
+          <div class="field full">
+            <label>Título</label>
+            <input
+              id="feedbackTitle"
+              maxlength="120"
+              minlength="3"
+              required
+              placeholder="Ex.: Seria útil anexar fotos"
+            >
+          </div>
+
+          <div class="field full">
+            <label>Descrição</label>
+            <textarea
+              id="feedbackDescription"
+              maxlength="2000"
+              minlength="3"
+              required
+              placeholder="Explique sua sugestão, problema ou elogio."
+            ></textarea>
+          </div>
+
+        </div>
+
+        <button
+          id="feedbackSubmitButton"
+          class="btn btn-primary"
+          type="submit"
+        >
+          Enviar feedback
+        </button>
+
+        <div
+          id="feedbackMessage"
+          class="message"
+        ></div>
+
+      </form>
+    `
+  );
+
+  $('feedbackForm').onsubmit =
+    async event => {
+
+      event.preventDefault();
+
+      const messageElement =
+        $('feedbackMessage');
+
+      clearMsg(
+        messageElement
+      );
+
+      const button =
+        $('feedbackSubmitButton');
+
+      button.disabled = true;
+      button.textContent =
+        'Enviando...';
+
+      try {
+
+        const payload = {
+          user_id:currentUser.id,
+          apartment_id:Number(v('feedbackApartment')),
+          type:v('feedbackType'),
+          title:v('feedbackTitle'),
+          description:v('feedbackDescription')
+        };
+
+        const {
+          error: insertError
+        } = await client
+          .from('portal_feedback')
+          .insert(payload);
+
+        if (insertError) {
+          throw insertError;
+        }
+
+        closeModal(
+          'genericModal'
+        );
+
+        await loadFeedback();
+        await refreshDashboard();
+
+      } catch (submitError) {
+
+        console.error(
+          'Erro ao enviar feedback:',
+          submitError
+        );
+
+        msg(
+          messageElement,
+          submitError.message ||
+            'Não foi possível enviar o feedback.'
+        );
+
+      } finally {
+
+        button.disabled = false;
+        button.textContent =
+          'Enviar feedback';
+      }
+    };
+}
+
+
+function feedbackAdminForm(item) {
+
+  if (!isAdmin()) {
+    return;
+  }
+
+  openModal(
+    'Gerenciar feedback',
+    item.title,
+    `
+      <form id="feedbackAdminForm">
+
+        <div class="form-grid">
+
+          <div class="field full">
+            <label>Status</label>
+            <select id="feedbackStatus" required>
+              ${[
+                ['novo','Novo'],
+                ['em_analise','Em análise'],
+                ['planejado','Planejado'],
+                ['implementado','Implementado'],
+                ['descartado','Descartado']
+              ].map(
+                option => `
+                  <option
+                    value="${option[0]}"
+                    ${option[0] === item.status ? 'selected' : ''}
+                  >
+                    ${option[1]}
+                  </option>
+                `
+              ).join('')}
+            </select>
+          </div>
+
+          <div class="field full">
+            <label>Observação da administração</label>
+            <textarea
+              id="feedbackAdminNotes"
+              maxlength="2000"
+              placeholder="Opcional. Esta observação ficará visível para quem enviou o feedback."
+            >${esc(item.admin_notes || '')}</textarea>
+          </div>
+
+        </div>
+
+        <button
+          id="feedbackAdminButton"
+          class="btn btn-primary"
+          type="submit"
+        >
+          Salvar
+        </button>
+
+        <div
+          id="feedbackAdminMessage"
+          class="message"
+        ></div>
+
+      </form>
+    `
+  );
+
+  $('feedbackAdminForm').onsubmit =
+    async event => {
+
+      event.preventDefault();
+
+      const messageElement =
+        $('feedbackAdminMessage');
+
+      clearMsg(
+        messageElement
+      );
+
+      const button =
+        $('feedbackAdminButton');
+
+      button.disabled = true;
+      button.textContent =
+        'Salvando...';
+
+      try {
+
+        const {
+          error
+        } = await client.rpc(
+          'update_portal_feedback_admin',
+          {
+            p_feedback_id:item.id,
+            p_status:v('feedbackStatus'),
+            p_admin_notes:v('feedbackAdminNotes') || null
+          }
+        );
+
+        if (error) {
+          throw error;
+        }
+
+        closeModal(
+          'genericModal'
+        );
+
+        await loadFeedback();
+        await refreshDashboard();
+
+      } catch (updateError) {
+
+        console.error(
+          'Erro ao atualizar feedback:',
+          updateError
+        );
+
+        msg(
+          messageElement,
+          updateError.message ||
+            'Não foi possível atualizar o feedback.'
+        );
+
+      } finally {
+
+        button.disabled = false;
+        button.textContent =
+          'Salvar';
+      }
+    };
 }
 
 
