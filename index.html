@@ -1,778 +1,1271 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#163c32">
-
-  <title>Condomínio Jacarandá II</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f4f6f5;
-      color: #1d2925;
-    }
-
-    button {
-      font-family: inherit;
-    }
-
-    /* =========================
-       LOGIN
-    ========================== */
-
-    #loginScreen {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      background: linear-gradient(135deg, #163c32, #245c4d);
-    }
-
-    .login-box {
-      background: white;
-      width: 100%;
-      max-width: 420px;
-      padding: 34px;
-      border-radius: 22px;
-      box-shadow: 0 20px 50px rgba(0,0,0,.18);
-    }
-
-    .login-brand {
-      text-align: center;
-      margin-bottom: 28px;
-    }
-
-    .login-logo {
-      width: 70px;
-      height: 70px;
-      margin: 0 auto 15px;
-      border-radius: 20px;
-      background: #edf5f1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 37px;
-    }
-
-    .login-brand h1 {
-      font-size: 22px;
-      margin-bottom: 6px;
-    }
-
-    .login-brand p {
-      color: #75817d;
-      font-size: 14px;
-    }
-
-    .field {
-      margin-bottom: 17px;
-    }
-
-    .field label {
-      display: block;
-      font-size: 13px;
-      font-weight: bold;
-      margin-bottom: 7px;
-    }
-
-    .field input {
-      width: 100%;
-      padding: 14px;
-      border: 1px solid #dce2df;
-      border-radius: 11px;
-      outline: none;
-      font-size: 15px;
-    }
-
-    .field input:focus {
-      border-color: #245c4d;
-    }
-
-    .login-button {
-      width: 100%;
-      border: 0;
-      padding: 14px;
-      border-radius: 11px;
-      background: #245c4d;
-      color: white;
-      font-size: 15px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .login-button:disabled {
-      opacity: .6;
-      cursor: wait;
-    }
-
-    #loginMessage {
-      min-height: 18px;
-      margin-top: 14px;
-      text-align: center;
-      color: #c34747;
-      font-size: 13px;
-    }
-
-    /* =========================
-       PORTAL
-    ========================== */
-
-    #portal {
-      display: none;
-    }
-
-    header {
-      background: linear-gradient(135deg, #163c32, #245c4d);
-      color: white;
-      padding: 32px 20px 45px;
-    }
-
-    .header-content {
-      max-width: 1100px;
-      margin: auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .logo {
-      width: 55px;
-      height: 55px;
-      background: rgba(255,255,255,.14);
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 30px;
-    }
-
-    .brand h1 {
-      font-size: 23px;
-      margin-bottom: 4px;
-    }
-
-    .brand p {
-      opacity: .8;
-      font-size: 14px;
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .notification {
-      width: 45px;
-      height: 45px;
-      background: rgba(255,255,255,.13);
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      position: relative;
-    }
-
-    .badge {
-      position: absolute;
-      right: -3px;
-      top: -3px;
-      background: #e45858;
-      width: 19px;
-      height: 19px;
-      border-radius: 50%;
-      font-size: 11px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .logout {
-      border: 0;
-      background: rgba(255,255,255,.13);
-      color: white;
-      height: 45px;
-      padding: 0 15px;
-      border-radius: 14px;
-      cursor: pointer;
-    }
-
-    main {
-      max-width: 1100px;
-      margin: -22px auto 50px;
-      padding: 0 20px;
-    }
-
-    .welcome {
-      background: white;
-      border-radius: 18px;
-      padding: 22px;
-      box-shadow: 0 6px 25px rgba(0,0,0,.06);
-      margin-bottom: 24px;
-    }
-
-    .welcome h2 {
-      font-size: 20px;
-      margin-bottom: 6px;
-    }
-
-    .welcome p {
-      color: #6c7773;
-      font-size: 14px;
-    }
-
-    .user-role {
-      display: inline-block;
-      margin-top: 10px;
-      padding: 5px 9px;
-      border-radius: 20px;
-      background: #e8f2ed;
-      color: #245c4d;
-      font-size: 11px;
-      font-weight: bold;
-      text-transform: uppercase;
-    }
-
-    .section-title {
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: .7px;
-      color: #71807a;
-      margin: 26px 0 12px;
-    }
-
-    /* =========================
-       CARDS
-    ========================== */
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-    }
-
-    .card {
-      background: white;
-      border-radius: 17px;
-      padding: 22px 18px;
-      min-height: 145px;
-      box-shadow: 0 3px 15px rgba(0,0,0,.045);
-      cursor: pointer;
-      transition: .2s;
-      border: 1px solid #edf0ef;
-    }
-
-    .card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 24px rgba(0,0,0,.08);
-    }
-
-    .icon {
-      font-size: 27px;
-      margin-bottom: 17px;
-    }
-
-    .card h3 {
-      font-size: 16px;
-      margin-bottom: 7px;
-    }
-
-    .card p {
-      font-size: 13px;
-      line-height: 1.4;
-      color: #7a8581;
-    }
-
-    /* =========================
-       ÚLTIMO AVISO
-    ========================== */
-
-    .notice {
-      background: #fff;
-      border-left: 4px solid #245c4d;
-      border-radius: 12px;
-      padding: 17px;
-      display: flex;
-      gap: 14px;
-      align-items: center;
-      box-shadow: 0 3px 15px rgba(0,0,0,.04);
-    }
-
-    .notice strong {
-      display: block;
-      margin-bottom: 4px;
-      font-size: 14px;
-    }
-
-    .notice span {
-      font-size: 13px;
-      color: #74807c;
-    }
-
-    /* =========================
-       GESTÃO DE MORADORES
-    ========================== */
-
-    #residentsPanel {
-      display: none;
-    }
-
-    .residents-header {
-      background: white;
-      border-radius: 18px;
-      padding: 20px;
-      margin-bottom: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 15px;
-      box-shadow: 0 3px 15px rgba(0,0,0,.04);
-      border: 1px solid #edf0ef;
-    }
-
-    .residents-header h2 {
-      font-size: 19px;
-      margin-bottom: 5px;
-    }
-
-    .residents-header p {
-      color: #74807c;
-      font-size: 13px;
-    }
-
-    .secondary-button {
-      border: 1px solid #dce2df;
-      background: white;
-      color: #245c4d;
-      padding: 10px 14px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .secondary-button:hover {
-      background: #f4f8f6;
-    }
-
-    .apartments-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-    }
-
-    .apartment-card {
-      background: white;
-      border: 1px solid #edf0ef;
-      border-radius: 16px;
-      padding: 18px;
-      box-shadow: 0 3px 15px rgba(0,0,0,.04);
-      transition: .2s;
-    }
-
-    .apartment-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 7px 20px rgba(0,0,0,.07);
-    }
-
-    .apartment-number {
-      font-size: 19px;
-      font-weight: bold;
-      color: #163c32;
-      margin-bottom: 7px;
-    }
-
-    .apartment-floor {
-      font-size: 12px;
-      color: #7a8581;
-      margin-bottom: 15px;
-    }
-
-    .apartment-info {
-      padding-top: 12px;
-      border-top: 1px solid #edf0ef;
-      font-size: 13px;
-      color: #56615d;
-    }
-
-    .status-active {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      margin-top: 10px;
-      background: #e8f2ed;
-      color: #245c4d;
-      border-radius: 20px;
-      padding: 5px 8px;
-      font-size: 11px;
-      font-weight: bold;
-    }
-
-    .loading-text {
-      background: white;
-      border-radius: 14px;
-      padding: 20px;
-      color: #74807c;
-      font-size: 14px;
-      grid-column: 1 / -1;
-    }
-
-    .error-box {
-      background: #fff3f3;
-      color: #a63e3e;
-      border: 1px solid #f0d0d0;
-      border-radius: 12px;
-      padding: 15px;
-      grid-column: 1 / -1;
-      font-size: 13px;
-    }
-
-    footer {
-      text-align: center;
-      color: #89938f;
-      font-size: 12px;
-      padding: 25px;
-    }
-
-    /* =========================
-       RESPONSIVO
-    ========================== */
-
-    @media (max-width: 800px) {
-      .grid,
-      .apartments-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 450px) {
-      main {
-        padding: 0 14px;
-      }
-
-      .brand h1 {
-        font-size: 18px;
-      }
-
-      .brand p {
-        font-size: 12px;
-      }
-
-      .logo {
-        width: 48px;
-        height: 48px;
-      }
-
-      .logout {
-        padding: 0 10px;
-      }
-
-      .grid {
-        gap: 10px;
-      }
-
-      .card {
-        min-height: 135px;
-        padding: 17px 14px;
-      }
-
-      .apartments-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .residents-header {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#163c32">
+
+<title>Condomínio Jacarandá II</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f4f6f5;
+  color: #1d2925;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.screen {
+  min-height: 100vh;
+}
+
+/* =========================
+   AUTENTICAÇÃO
+========================= */
+
+.auth-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #163c32, #245c4d);
+}
+
+.auth-box {
+  background: white;
+  width: 100%;
+  max-width: 440px;
+  padding: 32px;
+  border-radius: 22px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.18);
+}
+
+.auth-brand {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.auth-logo {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 14px;
+  border-radius: 20px;
+  background: #edf5f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 37px;
+}
+
+.auth-brand h1 {
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+
+.auth-brand p,
+.muted {
+  color: #75817d;
+  font-size: 13px;
+}
+
+.field {
+  margin-bottom: 15px;
+}
+
+.field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 7px;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #dce2df;
+  border-radius: 11px;
+  outline: none;
+  background: white;
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: #245c4d;
+}
+
+.btn {
+  border: 0;
+  padding: 12px 15px;
+  border-radius: 11px;
+  font-weight: 700;
+}
+
+.btn-primary {
+  background: #245c4d;
+  color: white;
+}
+
+.btn-secondary {
+  background: white;
+  color: #245c4d;
+  border: 1px solid #dce2df;
+}
+
+.btn-danger {
+  background: #fff0f0;
+  color: #b34141;
+  border: 1px solid #f0cece;
+}
+
+.btn-small {
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.btn:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
+.auth-box .btn-primary {
+  width: 100%;
+  padding: 14px;
+}
+
+.auth-links {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.link-btn {
+  border: 0;
+  background: none;
+  color: #245c4d;
+  font-size: 13px;
+  text-decoration: underline;
+}
+
+.message {
+  min-height: 18px;
+  margin-top: 12px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.message.error {
+  color: #b34141;
+}
+
+.message.success {
+  color: #24704f;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+header {
+  background: linear-gradient(135deg, #163c32, #245c4d);
+  color: white;
+  padding: 30px 20px 44px;
+}
+
+.header-content {
+  max-width: 1100px;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo {
+  width: 54px;
+  height: 54px;
+  background: rgba(255,255,255,.14);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 29px;
+}
+
+.brand h1 {
+  font-size: 22px;
+}
+
+.brand p {
+  opacity: .8;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+}
+
+.header-btn {
+  border: 0;
+  background: rgba(255,255,255,.13);
+  color: white;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 13px;
+}
+
+/* =========================
+   CONTEÚDO
+========================= */
+
+main {
+  max-width: 1100px;
+  margin: -22px auto 50px;
+  padding: 0 20px;
+}
+
+.panel {
+  background: white;
+  border: 1px solid #edf0ef;
+  border-radius: 18px;
+  padding: 21px;
+  box-shadow: 0 5px 22px rgba(0,0,0,.05);
+}
+
+.welcome {
+  margin-bottom: 23px;
+}
+
+.welcome h2 {
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+
+.role {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 5px 9px;
+  border-radius: 20px;
+  background: #e8f2ed;
+  color: #245c4d;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.section-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: #71807a;
+  margin: 25px 0 11px;
+}
+
+/* =========================
+   HOME
+========================= */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.card {
+  background: white;
+  border-radius: 17px;
+  padding: 21px 18px;
+  min-height: 142px;
+  box-shadow: 0 3px 15px rgba(0,0,0,.045);
+  border: 1px solid #edf0ef;
+  transition: .2s;
+  cursor: pointer;
+}
+
+.card:hover,
+.apartment-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0,0,0,.075);
+}
+
+.card .icon {
+  font-size: 27px;
+  margin-bottom: 16px;
+}
+
+.card h3 {
+  font-size: 16px;
+  margin-bottom: 7px;
+}
+
+.card p {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #7a8581;
+}
+
+.notice {
+  border-left: 4px solid #245c4d;
+  display: flex;
+  gap: 13px;
+  align-items: center;
+}
+
+/* =========================
+   ADMINISTRAÇÃO
+========================= */
+
+.view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.view-header h2 {
+  font-size: 19px;
+  margin-bottom: 5px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* =========================
+   APARTAMENTOS
+========================= */
+
+.apartments-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.apartment-card {
+  background: white;
+  border: 1px solid #edf0ef;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 3px 15px rgba(0,0,0,.04);
+  transition: .2s;
+  cursor: pointer;
+}
+
+.apartment-number {
+  font-size: 18px;
+  font-weight: 700;
+  color: #163c32;
+}
+
+.apartment-floor {
+  font-size: 12px;
+  color: #7a8581;
+  margin: 7px 0 14px;
+}
+
+.apartment-info {
+  border-top: 1px solid #edf0ef;
+  padding-top: 12px;
+  font-size: 13px;
+}
+
+/* =========================
+   STATUS
+========================= */
+
+.pill {
+  display: inline-flex;
+  margin-top: 9px;
+  padding: 5px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pill.green {
+  background: #e8f2ed;
+  color: #245c4d;
+}
+
+.pill.orange {
+  background: #fff4df;
+  color: #8a641c;
+}
+
+.pill.red {
+  background: #fff0f0;
+  color: #b34141;
+}
+
+.pill.gray {
+  background: #eef1f0;
+  color: #66716d;
+}
+
+/* =========================
+   MORADORES / CONVITES
+========================= */
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.list-item {
+  border: 1px solid #e7ece9;
+  border-radius: 13px;
+  padding: 14px;
+}
+
+.list-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.list-item h4 {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.list-item p {
+  font-size: 12px;
+  color: #74807c;
+  line-height: 1.45;
+}
+
+.empty,
+.loading {
+  padding: 18px;
+  border: 1px dashed #d9e0dd;
+  border-radius: 12px;
+  color: #74807c;
+  font-size: 13px;
+}
+
+/* =========================
+   FORMULÁRIOS
+========================= */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-grid .full {
+  grid-column: 1 / -1;
+}
+
+.invite-result {
+  margin-top: 14px;
+  background: #edf5f1;
+  border: 1px solid #d5e7de;
+  border-radius: 13px;
+  padding: 15px;
+}
+
+.invite-code {
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #163c32;
+  margin: 7px 0;
+}
+
+/* =========================
+   MODAL
+========================= */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 50;
+}
+
+.modal {
+  width: 100%;
+  max-width: 520px;
+  background: white;
+  border-radius: 18px;
+  padding: 22px;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.modal-close {
+  border: 0;
+  background: #eef2f0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+footer {
+  text-align: center;
+  color: #89938f;
+  font-size: 12px;
+  padding: 25px;
+}
+
+/* =========================
+   RESPONSIVO
+========================= */
+
+@media (max-width: 800px) {
+  .grid,
+  .apartments-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 500px) {
+  main {
+    padding: 0 13px;
+  }
+
+  .brand h1 {
+    font-size: 17px;
+  }
+
+  .brand p {
+    font-size: 11px;
+  }
+
+  .logo {
+    width: 46px;
+    height: 46px;
+  }
+
+  .grid {
+    gap: 9px;
+  }
+
+  .card {
+    padding: 16px 13px;
+    min-height: 130px;
+  }
+
+  .apartments-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .view-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid .full {
+    grid-column: auto;
+  }
+
+  .auth-box {
+    padding: 25px 20px;
+  }
+
+  .header-btn {
+    padding: 0 10px;
+  }
+}
+</style>
 </head>
 
 <body>
 
 <!-- =========================
-     LOGIN
-========================== -->
+     LOGIN / CADASTRO
+========================= -->
 
-<section id="loginScreen">
+<section id="authScreen" class="screen auth-screen">
 
-  <div class="login-box">
+  <div class="auth-box">
 
-    <div class="login-brand">
-      <div class="login-logo">🌿</div>
+    <div class="auth-brand">
+      <div class="auth-logo">🌿</div>
       <h1>Condomínio Jacarandá II</h1>
       <p>Portal do Morador</p>
     </div>
 
-    <form id="loginForm">
+    <!-- LOGIN -->
 
-      <div class="field">
-        <label for="email">E-mail</label>
-        <input
-          type="email"
-          id="email"
-          autocomplete="email"
-          required
+    <div id="loginView">
+
+      <form id="loginForm">
+
+        <div class="field">
+          <label>E-mail</label>
+          <input
+            id="loginEmail"
+            type="email"
+            autocomplete="email"
+            required
+          >
+        </div>
+
+        <div class="field">
+          <label>Senha</label>
+          <input
+            id="loginPassword"
+            type="password"
+            autocomplete="current-password"
+            required
+          >
+        </div>
+
+        <button
+          id="loginButton"
+          class="btn btn-primary"
+          type="submit"
         >
+          Entrar
+        </button>
+
+        <div
+          id="loginMessage"
+          class="message"
+        ></div>
+
+      </form>
+
+      <div class="auth-links">
+        <button
+          id="showSignup"
+          class="link-btn"
+        >
+          Primeiro acesso / Criar conta
+        </button>
       </div>
 
-      <div class="field">
-        <label for="password">Senha</label>
-        <input
-          type="password"
-          id="password"
-          autocomplete="current-password"
-          required
-        >
-      </div>
+    </div>
 
-      <button
-        type="submit"
-        class="login-button"
-        id="loginButton"
+    <!-- CADASTRO -->
+
+    <div
+      id="signupView"
+      class="hidden"
+    >
+
+      <h3 style="margin-bottom:7px">
+        Criar acesso
+      </h3>
+
+      <p
+        class="muted"
+        style="margin-bottom:17px"
       >
-        Entrar
-      </button>
+        Use o mesmo e-mail para o qual o administrador gerou o convite.
+      </p>
 
-      <div id="loginMessage"></div>
+      <form id="signupForm">
 
-    </form>
+        <div class="field">
+          <label>Nome completo</label>
+          <input
+            id="signupName"
+            required
+          >
+        </div>
+
+        <div class="field">
+          <label>E-mail</label>
+          <input
+            id="signupEmail"
+            type="email"
+            autocomplete="email"
+            required
+          >
+        </div>
+
+        <div class="field">
+          <label>Senha</label>
+          <input
+            id="signupPassword"
+            type="password"
+            minlength="6"
+            autocomplete="new-password"
+            required
+          >
+        </div>
+
+        <div class="field">
+          <label>Código do convite</label>
+          <input
+            id="signupCode"
+            maxlength="30"
+            autocomplete="off"
+            required
+          >
+        </div>
+
+        <button
+          id="signupButton"
+          class="btn btn-primary"
+          type="submit"
+        >
+          Criar minha conta
+        </button>
+
+        <div
+          id="signupMessage"
+          class="message"
+        ></div>
+
+      </form>
+
+      <div class="auth-links">
+        <button
+          id="backLogin"
+          class="link-btn"
+        >
+          ← Voltar para entrar
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ACEITAR CONVITE -->
+
+    <div
+      id="acceptView"
+      class="hidden"
+    >
+
+      <h3 style="margin-bottom:7px">
+        Concluir primeiro acesso
+      </h3>
+
+      <p
+        class="muted"
+        style="margin-bottom:17px"
+      >
+        Sua conta foi criada. Informe o código do convite para vincular seu apartamento.
+      </p>
+
+      <form id="acceptForm">
+
+        <div class="field">
+          <label>Código do convite</label>
+          <input
+            id="acceptCode"
+            required
+          >
+        </div>
+
+        <button
+          id="acceptButton"
+          class="btn btn-primary"
+          type="submit"
+        >
+          Vincular apartamento
+        </button>
+
+        <div
+          id="acceptMessage"
+          class="message"
+        ></div>
+
+      </form>
+
+    </div>
 
   </div>
 
 </section>
 
-
 <!-- =========================
      PORTAL
-========================== -->
+========================= -->
 
-<div id="portal">
+<div
+  id="portal"
+  class="hidden"
+>
 
-  <header>
+<header>
 
-    <div class="header-content">
+  <div class="header-content">
 
-      <div class="brand">
+    <div class="brand">
 
-        <div class="logo">🌿</div>
-
-        <div>
-          <h1>Condomínio Jacarandá II</h1>
-          <p>Portal do Morador</p>
-        </div>
-
+      <div class="logo">
+        🌿
       </div>
 
-      <div class="header-actions">
-
-        <div class="notification">
-          🔔
-          <div class="badge">2</div>
-        </div>
-
-        <button
-          class="logout"
-          id="logoutButton"
-        >
-          Sair
-        </button>
-
+      <div>
+        <h1>Condomínio Jacarandá II</h1>
+        <p>Portal do Morador</p>
       </div>
 
     </div>
 
-  </header>
+    <div class="header-actions">
 
+      <button
+        id="homeButton"
+        class="header-btn"
+      >
+        ⌂ Início
+      </button>
 
-  <main>
-
-    <!-- HOME -->
-
-    <div id="homeView">
-
-      <div class="welcome">
-
-        <h2 id="welcomeName">
-          Olá! 👋
-        </h2>
-
-        <p>
-          Acompanhe avisos, serviços e informações do condomínio.
-        </p>
-
-        <span
-          class="user-role"
-          id="userRole"
-        ></span>
-
-      </div>
-
-
-      <div class="section-title">
-        Acesso rápido
-      </div>
-
-
-      <div class="grid">
-
-        <div class="card">
-          <div class="icon">📢</div>
-          <h3>Avisos</h3>
-          <p>Comunicados importantes do condomínio.</p>
-        </div>
-
-        <div class="card">
-          <div class="icon">📝</div>
-          <h3>Solicitações</h3>
-          <p>Abra e acompanhe solicitações.</p>
-        </div>
-
-        <div class="card">
-          <div class="icon">📅</div>
-          <h3>Agenda</h3>
-          <p>Reformas, visitas e serviços agendados.</p>
-        </div>
-
-        <div class="card">
-          <div class="icon">🧹</div>
-          <h3>Limpeza</h3>
-          <p>Acompanhe a programação de limpeza.</p>
-        </div>
-
-        <div class="card">
-          <div class="icon">🔧</div>
-          <h3>Manutenções</h3>
-          <p>Serviços e manutenções do condomínio.</p>
-        </div>
-
-        <div class="card">
-          <div class="icon">🎯</div>
-          <h3>Metas</h3>
-          <p>Melhorias planejadas e andamento.</p>
-        </div>
-
-        <div
-          class="card"
-          id="residentsCard"
-          style="display:none"
-        >
-          <div class="icon">👥</div>
-          <h3>Moradores</h3>
-          <p>Cadastro dos apartamentos e moradores.</p>
-        </div>
-
-        <div class="card">
-          <div class="icon">📁</div>
-          <h3>Documentos</h3>
-          <p>Documentos e arquivos importantes.</p>
-        </div>
-
-      </div>
-
-
-      <div class="section-title">
-        Último aviso
-      </div>
-
-      <div class="notice">
-
-        <div style="font-size:24px">
-          📢
-        </div>
-
-        <div>
-
-          <strong>
-            Bem-vindo ao Portal do Jacarandá II
-          </strong>
-
-          <span>
-            Os comunicados do condomínio aparecerão aqui.
-          </span>
-
-        </div>
-
-      </div>
+      <button
+        id="logoutButton"
+        class="header-btn"
+      >
+        Sair
+      </button>
 
     </div>
 
+  </div>
 
-    <!-- =========================
-         MORADORES
-    ========================== -->
+</header>
 
-    <section id="residentsPanel">
+<main>
 
-      <div class="section-title">
-        Administração
-      </div>
+<!-- =========================
+     HOME
+========================= -->
 
-      <div class="residents-header">
+<section id="homeView">
 
-        <div>
-          <h2>👥 Gestão de moradores</h2>
-          <p>
-            Consulte os apartamentos e gerencie os moradores
-            do Condomínio Jacarandá II.
-          </p>
-        </div>
+  <div class="panel welcome">
 
-        <button
-          id="closeResidents"
-          class="secondary-button"
-        >
-          ← Voltar
-        </button>
+    <h2 id="welcomeName">
+      Olá! 👋
+    </h2>
 
-      </div>
+    <p class="muted">
+      Acompanhe avisos, serviços e informações do condomínio.
+    </p>
+
+    <span
+      id="userRole"
+      class="role"
+    ></span>
+
+  </div>
+
+  <div class="section-title">
+    Acesso rápido
+  </div>
+
+  <div class="grid">
+
+    <div class="card">
+      <div class="icon">📢</div>
+      <h3>Avisos</h3>
+      <p>Comunicados importantes do condomínio.</p>
+    </div>
+
+    <div class="card">
+      <div class="icon">📝</div>
+      <h3>Solicitações</h3>
+      <p>Abra e acompanhe solicitações.</p>
+    </div>
+
+    <div class="card">
+      <div class="icon">📅</div>
+      <h3>Agenda</h3>
+      <p>Reformas, visitas e serviços agendados.</p>
+    </div>
+
+    <div class="card">
+      <div class="icon">🧹</div>
+      <h3>Limpeza</h3>
+      <p>Acompanhe a programação de limpeza.</p>
+    </div>
+
+    <div class="card">
+      <div class="icon">🔧</div>
+      <h3>Manutenções</h3>
+      <p>Serviços e manutenções do condomínio.</p>
+    </div>
+
+    <div class="card">
+      <div class="icon">🎯</div>
+      <h3>Metas</h3>
+      <p>Melhorias planejadas e andamento.</p>
+    </div>
+
+    <div
+      id="residentsCard"
+      class="card hidden"
+    >
+      <div class="icon">👥</div>
+      <h3>Moradores</h3>
+      <p>Cadastro dos apartamentos e moradores.</p>
+    </div>
+
+    <div class="card">
+      <div class="icon">📁</div>
+      <h3>Documentos</h3>
+      <p>Documentos e arquivos importantes.</p>
+    </div>
+
+  </div>
+
+  <div class="section-title">
+    Último aviso
+  </div>
+
+  <div class="panel notice">
+
+    <div style="font-size:24px">
+      📢
+    </div>
+
+    <div>
+
+      <strong>
+        Bem-vindo ao Portal do Jacarandá II
+      </strong>
+
+      <p
+        class="muted"
+        style="margin-top:4px"
+      >
+        Os comunicados do condomínio aparecerão aqui.
+      </p>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- =========================
+     LISTA DE APARTAMENTOS
+========================= -->
+
+<section
+  id="residentsView"
+  class="hidden"
+>
+
+  <div class="section-title">
+    Administração
+  </div>
+
+  <div class="panel view-header">
+
+    <div>
+
+      <h2>
+        👥 Gestão de moradores
+      </h2>
+
+      <p class="muted">
+        Clique em um apartamento para consultar moradores e convites.
+      </p>
+
+    </div>
+
+    <button
+      class="btn btn-secondary"
+      onclick="showHome()"
+    >
+      ← Voltar
+    </button>
+
+  </div>
+
+  <div
+    id="apartmentsGrid"
+    class="apartments-grid"
+  >
+    <div class="loading">
+      Carregando apartamentos...
+    </div>
+  </div>
+
+</section>
+
+<!-- =========================
+     DETALHE DO APARTAMENTO
+========================= -->
+
+<section
+  id="apartmentView"
+  class="hidden"
+>
+
+  <div class="section-title">
+    Administração
+  </div>
+
+  <div class="panel view-header">
+
+    <div>
+
+      <h2 id="apartmentTitle">
+        🏠 Apartamento
+      </h2>
+
+      <p
+        id="apartmentSubtitle"
+        class="muted"
+      ></p>
+
+    </div>
+
+    <div class="actions">
+
+      <button
+        id="newInviteButton"
+        class="btn btn-primary"
+      >
+        + Convidar morador
+      </button>
+
+      <button
+        class="btn btn-secondary"
+        onclick="showResidents()"
+      >
+        ← Apartamentos
+      </button>
+
+    </div>
+
+  </div>
+
+  <div class="two-col">
+
+    <div class="panel">
+
+      <h3 style="margin-bottom:14px">
+        Moradores vinculados
+      </h3>
 
       <div
-        id="apartmentsGrid"
-        class="apartments-grid"
-      >
+        id="residentList"
+        class="list"
+      ></div>
 
-        <div class="loading-text">
-          Carregando apartamentos...
-        </div>
+    </div>
 
-      </div>
+    <div class="panel">
 
-    </section>
+      <h3 style="margin-bottom:14px">
+        Convites
+      </h3>
 
-  </main>
+      <div
+        id="inviteList"
+        class="list"
+      ></div>
 
+    </div>
 
-  <footer>
-    Condomínio Jacarandá II • Portal do Morador
-  </footer>
+  </div>
+
+</section>
+
+</main>
+
+<footer>
+  Condomínio Jacarandá II • Portal do Morador
+</footer>
 
 </div>
 
+<!-- =========================
+     MODAL DE CONVITE
+========================= -->
+
+<div
+  id="inviteModal"
+  class="modal-backdrop hidden"
+>
+
+  <div class="modal">
+
+    <div class="modal-head">
+
+      <div>
+
+        <h3>
+          Novo convite
+        </h3>
+
+        <p
+          id="inviteApartmentLabel"
+          class="muted"
+        ></p>
+
+      </div>
+
+      <button
+        id="closeInviteModal"
+        class="modal-close"
+      >
+        ✕
+      </button>
+
+    </div>
+
+    <form id="inviteForm">
+
+      <div class="form-grid">
+
+        <div class="field full">
+
+          <label>
+            Nome completo
+          </label>
+
+          <input
+            id="inviteName"
+            required
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label>
+            E-mail
+          </label>
+
+          <input
+            id="inviteEmail"
+            type="email"
+            required
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label>
+            Telefone
+          </label>
+
+          <input
+            id="invitePhone"
+            type="tel"
+          >
+
+        </div>
+
+        <div class="field full">
+
+          <label>
+            Tipo
+          </label>
+
+          <select id="inviteType">
+
+            <option value="morador">
+              Morador
+            </option>
+
+            <option value="proprietario">
+              Proprietário
+            </option>
+
+            <option value="inquilino">
+              Inquilino
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+      <button
+        id="createInviteButton"
+        class="btn btn-primary"
+        type="submit"
+      >
+        Gerar convite
+      </button>
+
+      <div
+        id="inviteMessage"
+        class="message"
+      ></div>
+
+      <div
+        id="inviteResult"
+        class="invite-result hidden"
+      ></div>
+
+    </form>
+
+  </div>
+
+</div>
 
 <script>
 
 /* =========================
    SUPABASE
-========================== */
+========================= */
 
 const SUPABASE_URL =
   'https://jfajhljoockoneeunzfm.supabase.co';
@@ -786,406 +1279,1561 @@ const client =
     SUPABASE_KEY
   );
 
+/* =========================
+   ESTADO
+========================= */
+
+let currentProfile = null;
+let currentUser = null;
+let currentApartment = null;
 
 /* =========================
-   ELEMENTOS
-========================== */
+   UTILIDADES
+========================= */
 
-const loginScreen =
-  document.getElementById('loginScreen');
+const $ = id =>
+  document.getElementById(id);
 
-const portal =
-  document.getElementById('portal');
+function msg(
+  element,
+  text,
+  type = 'error'
+) {
 
-const loginForm =
-  document.getElementById('loginForm');
+  element.textContent = text;
+  element.className =
+    'message ' + type;
+}
 
-const loginButton =
-  document.getElementById('loginButton');
+function clearMsg(element) {
 
-const loginMessage =
-  document.getElementById('loginMessage');
+  element.textContent = '';
+  element.className = 'message';
+}
 
-const residentsCard =
-  document.getElementById('residentsCard');
+function esc(value) {
 
-const residentsPanel =
-  document.getElementById('residentsPanel');
+  return String(value ?? '')
+    .replace(
+      /[&<>"']/g,
+      character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      })[character]
+    );
+}
 
-const homeView =
-  document.getElementById('homeView');
+function dateBR(value) {
 
-const apartmentsGrid =
-  document.getElementById('apartmentsGrid');
+  if (!value) {
+    return '-';
+  }
 
-const closeResidents =
-  document.getElementById('closeResidents');
+  return new Date(value)
+    .toLocaleString('pt-BR');
+}
 
+function typeLabel(value) {
+
+  return ({
+    morador: 'Morador',
+    proprietario: 'Proprietário',
+    inquilino: 'Inquilino'
+  })[value] || value || 'Morador';
+}
 
 /* =========================
-   CARREGAR PORTAL
-========================== */
+   NAVEGAÇÃO
+========================= */
+
+function hideViews() {
+
+  [
+    'homeView',
+    'residentsView',
+    'apartmentView'
+  ].forEach(
+    id => $(id).classList.add('hidden')
+  );
+}
+
+function showHome() {
+
+  hideViews();
+
+  $('homeView')
+    .classList
+    .remove('hidden');
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+}
+
+async function showResidents() {
+
+  hideViews();
+
+  $('residentsView')
+    .classList
+    .remove('hidden');
+
+  await loadApartments();
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+}
+
+/* =========================
+   AUTENTICAÇÃO
+========================= */
+
+function showLogin() {
+
+  $('portal')
+    .classList
+    .add('hidden');
+
+  $('authScreen')
+    .classList
+    .remove('hidden');
+
+  $('loginView')
+    .classList
+    .remove('hidden');
+
+  $('signupView')
+    .classList
+    .add('hidden');
+
+  $('acceptView')
+    .classList
+    .add('hidden');
+}
+
+function showPortal() {
+
+  $('authScreen')
+    .classList
+    .add('hidden');
+
+  $('portal')
+    .classList
+    .remove('hidden');
+
+  showHome();
+}
+
+/* =========================
+   CARREGAR PERFIL
+========================= */
 
 async function loadPortal(user) {
 
-  const { data: profile, error } =
+  const {
+    data: profile,
+    error
+  } =
     await client
       .from('profiles')
-      .select('full_name, role, active')
+      .select(
+        'full_name, role, active'
+      )
       .eq('id', user.id)
       .single();
 
-
-  if (error || !profile) {
-
-    console.error(
-      'Erro ao carregar perfil:',
-      error
-    );
+  if (
+    error ||
+    !profile
+  ) {
 
     await client.auth.signOut();
 
-    loginMessage.textContent =
-      'Não foi possível carregar seu perfil.';
-
     showLogin();
+
+    msg(
+      $('loginMessage'),
+      'Não foi possível carregar seu perfil.'
+    );
 
     return;
   }
-
 
   if (!profile.active) {
 
     await client.auth.signOut();
 
-    loginMessage.textContent =
-      'Este usuário está inativo.';
-
     showLogin();
+
+    msg(
+      $('loginMessage'),
+      'Este usuário está inativo.'
+    );
 
     return;
   }
 
+  currentUser = user;
+  currentProfile = profile;
 
-  const name =
-    profile.full_name || 'Morador';
+  $('welcomeName').textContent =
+    `Olá, ${profile.full_name || 'Morador'}! 👋`;
 
-
-  document.getElementById(
-    'welcomeName'
-  ).textContent =
-    `Olá, ${name}! 👋`;
-
-
-  document.getElementById(
-    'userRole'
-  ).textContent =
+  $('userRole').textContent =
     profile.role === 'admin'
       ? 'Administrador'
       : 'Morador';
 
+  $('residentsCard')
+    .classList
+    .toggle(
+      'hidden',
+      profile.role !== 'admin'
+    );
 
-  residentsCard.style.display =
-    profile.role === 'admin'
-      ? 'block'
-      : 'none';
-
-
-  residentsPanel.style.display = 'none';
-  homeView.style.display = 'block';
-
-  loginScreen.style.display = 'none';
-  portal.style.display = 'block';
+  showPortal();
 }
-
 
 /* =========================
    LOGIN
-========================== */
+========================= */
 
-function showLogin() {
-
-  portal.style.display = 'none';
-  loginScreen.style.display = 'flex';
-}
-
-
-loginForm.addEventListener(
-  'submit',
-  async function(event) {
-
-    event.preventDefault();
-
-    loginMessage.textContent = '';
-
-    loginButton.disabled = true;
-    loginButton.textContent =
-      'Entrando...';
-
-
-    const email =
-      document
-        .getElementById('email')
-        .value
-        .trim();
-
-
-    const password =
-      document
-        .getElementById('password')
-        .value;
-
-
-    try {
-
-      const { data, error } =
-        await client.auth.signInWithPassword({
-          email,
-          password
-        });
-
-
-      if (error) {
-
-        loginMessage.textContent =
-          'E-mail ou senha inválidos.';
-
-        return;
-      }
-
-
-      if (!data.user) {
-
-        loginMessage.textContent =
-          'Não foi possível identificar o usuário.';
-
-        return;
-      }
-
-
-      await loadPortal(data.user);
-
-    } catch (error) {
-
-      console.error(error);
-
-      loginMessage.textContent =
-        'Ocorreu um erro ao entrar. Tente novamente.';
-
-    } finally {
-
-      loginButton.disabled = false;
-      loginButton.textContent = 'Entrar';
-    }
-
-  }
-);
-
-
-/* =========================
-   LOGOUT
-========================== */
-
-document
-  .getElementById('logoutButton')
+$('loginForm')
   .addEventListener(
-    'click',
-    async function() {
+    'submit',
+    async event => {
 
-      await client.auth.signOut();
+      event.preventDefault();
 
-      loginForm.reset();
+      clearMsg(
+        $('loginMessage')
+      );
 
-      residentsPanel.style.display = 'none';
-      homeView.style.display = 'block';
+      $('loginButton').disabled = true;
+      $('loginButton').textContent =
+        'Entrando...';
 
-      showLogin();
+      const email =
+        $('loginEmail')
+          .value
+          .trim();
+
+      const password =
+        $('loginPassword')
+          .value;
+
+      try {
+
+        const {
+          data,
+          error
+        } =
+          await client.auth
+            .signInWithPassword({
+              email,
+              password
+            });
+
+        if (
+          error ||
+          !data.user
+        ) {
+
+          msg(
+            $('loginMessage'),
+            'E-mail ou senha inválidos.'
+          );
+
+          return;
+        }
+
+        await loadPortal(
+          data.user
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        msg(
+          $('loginMessage'),
+          'Não foi possível entrar.'
+        );
+
+      } finally {
+
+        $('loginButton').disabled =
+          false;
+
+        $('loginButton').textContent =
+          'Entrar';
+      }
+
     }
   );
 
+/* =========================
+   ABRIR CADASTRO
+========================= */
+
+$('showSignup').onclick =
+  () => {
+
+    $('loginView')
+      .classList
+      .add('hidden');
+
+    $('signupView')
+      .classList
+      .remove('hidden');
+
+    clearMsg(
+      $('signupMessage')
+    );
+  };
+
+$('backLogin').onclick =
+  () => showLogin();
 
 /* =========================
-   ABRIR MORADORES
-========================== */
+   CRIAR CONTA
+========================= */
 
-residentsCard.addEventListener(
-  'click',
-  async function() {
+$('signupForm')
+  .addEventListener(
+    'submit',
+    async event => {
 
-    homeView.style.display = 'none';
-    residentsPanel.style.display = 'block';
+      event.preventDefault();
 
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+      clearMsg(
+        $('signupMessage')
+      );
 
-    await loadApartments();
-  }
-);
+      $('signupButton').disabled =
+        true;
 
+      const name =
+        $('signupName')
+          .value
+          .trim();
+
+      const email =
+        $('signupEmail')
+          .value
+          .trim()
+          .toLowerCase();
+
+      const password =
+        $('signupPassword')
+          .value;
+
+      const code =
+        $('signupCode')
+          .value
+          .trim()
+          .toUpperCase();
+
+      try {
+
+        const {
+          data,
+          error
+        } =
+          await client.auth.signUp({
+            email,
+            password,
+
+            options: {
+
+              data: {
+                full_name: name
+              }
+
+            }
+          });
+
+        if (error) {
+          throw error;
+        }
+
+        /*
+          Se confirmação de e-mail estiver desativada,
+          o Supabase já devolve uma sessão.
+        */
+
+        if (
+          data.session &&
+          data.user
+        ) {
+
+          currentUser =
+            data.user;
+
+          $('signupView')
+            .classList
+            .add('hidden');
+
+          $('acceptView')
+            .classList
+            .remove('hidden');
+
+          $('acceptCode').value =
+            code;
+
+          msg(
+            $('acceptMessage'),
+            'Conta criada. Agora conclua o vínculo com seu apartamento.',
+            'success'
+          );
+
+        } else {
+
+          /*
+            Se confirmação de e-mail estiver habilitada,
+            guardamos o convite no navegador.
+          */
+
+          localStorage.setItem(
+            'jacaranda_pending_invite',
+            code
+          );
+
+          msg(
+            $('signupMessage'),
+            'Conta criada. Verifique seu e-mail para confirmar o cadastro. Depois entre normalmente para concluir o vínculo do apartamento.',
+            'success'
+          );
+        }
+
+      } catch (error) {
+
+        console.error(error);
+
+        msg(
+          $('signupMessage'),
+          error.message ||
+          'Não foi possível criar a conta.'
+        );
+
+      } finally {
+
+        $('signupButton').disabled =
+          false;
+      }
+
+    }
+  );
 
 /* =========================
-   VOLTAR AO INÍCIO
-========================== */
+   ACEITAR CONVITE
+========================= */
 
-closeResidents.addEventListener(
-  'click',
-  function() {
+$('acceptForm')
+  .addEventListener(
+    'submit',
+    async event => {
 
-    residentsPanel.style.display = 'none';
-    homeView.style.display = 'block';
+      event.preventDefault();
 
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  }
-);
+      clearMsg(
+        $('acceptMessage')
+      );
 
+      $('acceptButton').disabled =
+        true;
+
+      const code =
+        $('acceptCode')
+          .value
+          .trim()
+          .toUpperCase();
+
+      try {
+
+        const {
+          data,
+          error
+        } =
+          await client.rpc(
+            'accept_resident_invite',
+            {
+              p_code: code
+            }
+          );
+
+        if (error) {
+          throw error;
+        }
+
+        localStorage.removeItem(
+          'jacaranda_pending_invite'
+        );
+
+        msg(
+          $('acceptMessage'),
+          `Apartamento ${data?.apartment || ''} vinculado com sucesso.`,
+          'success'
+        );
+
+        const {
+          data: sessionData
+        } =
+          await client.auth
+            .getSession();
+
+        if (
+          sessionData.session?.user
+        ) {
+
+          setTimeout(
+            () =>
+              loadPortal(
+                sessionData.session.user
+              ),
+            700
+          );
+        }
+
+      } catch (error) {
+
+        console.error(error);
+
+        msg(
+          $('acceptMessage'),
+          error.message ||
+          'Não foi possível aceitar o convite.'
+        );
+
+      } finally {
+
+        $('acceptButton').disabled =
+          false;
+      }
+
+    }
+  );
+
+/* =========================
+   LOGOUT
+========================= */
+
+$('logoutButton').onclick =
+  async () => {
+
+    await client.auth.signOut();
+
+    currentProfile = null;
+    currentUser = null;
+    currentApartment = null;
+
+    showLogin();
+  };
+
+/* =========================
+   HOME
+========================= */
+
+$('homeButton').onclick =
+  showHome;
+
+/* =========================
+   MORADORES
+========================= */
+
+$('residentsCard').onclick =
+  showResidents;
 
 /* =========================
    CARREGAR APARTAMENTOS
-========================== */
+========================= */
 
 async function loadApartments() {
 
-  apartmentsGrid.innerHTML =
+  $('apartmentsGrid').innerHTML =
     `
-      <div class="loading-text">
+      <div class="loading">
         Carregando apartamentos...
       </div>
     `;
 
+  try {
 
-  const { data, error } =
-    await client
-      .from('apartments')
-      .select('*')
-      .eq('active', true)
-      .order('number');
+    const [
+      apartmentsResult,
+      linksResult
+    ] =
+      await Promise.all([
 
+        client
+          .from('apartments')
+          .select('*')
+          .eq('active', true)
+          .order('number'),
 
-  if (error) {
+        client
+          .from('apartment_residents')
+          .select(
+            'apartment_id, active'
+          )
 
-    console.error(
-      'Erro ao carregar apartamentos:',
-      error
-    );
+      ]);
 
-    apartmentsGrid.innerHTML =
-      `
-        <div class="error-box">
-          Não foi possível carregar os apartamentos.
-        </div>
-      `;
+    if (apartmentsResult.error) {
+      throw apartmentsResult.error;
+    }
 
-    return;
-  }
+    const counts = {};
 
+    (linksResult.data || [])
+      .filter(
+        item => item.active
+      )
+      .forEach(
+        item => {
 
-  if (!data || data.length === 0) {
+          counts[item.apartment_id] =
+            (
+              counts[item.apartment_id] ||
+              0
+            ) + 1;
+        }
+      );
 
-    apartmentsGrid.innerHTML =
-      `
-        <div class="loading-text">
-          Nenhum apartamento encontrado.
-        </div>
-      `;
+    $('apartmentsGrid').innerHTML =
+      '';
 
-    return;
-  }
+    if (
+      !apartmentsResult.data ||
+      apartmentsResult.data.length === 0
+    ) {
 
-
-  apartmentsGrid.innerHTML = '';
-
-
-  data.forEach(
-    function(apartment) {
-
-      const card =
-        document.createElement('div');
-
-      card.className =
-        'apartment-card';
-
-
-      const apartmentNumber =
-        apartment.number ?? '-';
-
-
-      const floor =
-        apartment.floor ?? '-';
-
-
-      card.innerHTML =
+      $('apartmentsGrid').innerHTML =
         `
-          <div class="apartment-number">
-            🏠 Apartamento ${apartmentNumber}
-          </div>
-
-          <div class="apartment-floor">
-            ${floor}º andar
-          </div>
-
-          <div class="apartment-info">
-
-            Apartamento cadastrado
-
-            <br>
-
-            <span class="status-active">
-              ● Ativo
-            </span>
-
+          <div class="empty">
+            Nenhum apartamento encontrado.
           </div>
         `;
 
-
-      apartmentsGrid.appendChild(card);
+      return;
     }
-  );
+
+    apartmentsResult.data
+      .forEach(
+        apartment => {
+
+          const card =
+            document.createElement(
+              'div'
+            );
+
+          card.className =
+            'apartment-card';
+
+          const count =
+            counts[apartment.id] || 0;
+
+          card.innerHTML =
+            `
+              <div class="apartment-number">
+                🏠 Apartamento ${esc(apartment.number)}
+              </div>
+
+              <div class="apartment-floor">
+                ${esc(apartment.floor)}º andar
+              </div>
+
+              <div class="apartment-info">
+
+                <strong>
+                  ${count}
+                </strong>
+
+                ${
+                  count === 1
+                    ? 'morador ativo'
+                    : 'moradores ativos'
+                }
+
+                <br>
+
+                <span class="pill green">
+                  ● Ativo
+                </span>
+
+              </div>
+            `;
+
+          card.onclick =
+            () =>
+              openApartment(
+                apartment
+              );
+
+          $('apartmentsGrid')
+            .appendChild(
+              card
+            );
+        }
+      );
+
+  } catch (error) {
+
+    console.error(error);
+
+    $('apartmentsGrid').innerHTML =
+      `
+        <div class="empty">
+          Não foi possível carregar os apartamentos.
+        </div>
+      `;
+  }
 }
 
+/* =========================
+   ABRIR APARTAMENTO
+========================= */
+
+async function openApartment(
+  apartment
+) {
+
+  currentApartment =
+    apartment;
+
+  hideViews();
+
+  $('apartmentView')
+    .classList
+    .remove('hidden');
+
+  $('apartmentTitle').textContent =
+    `🏠 Apartamento ${apartment.number}`;
+
+  $('apartmentSubtitle').textContent =
+    `${apartment.floor}º andar`;
+
+  await Promise.all([
+    loadResidents(
+      apartment.id
+    ),
+    loadInvites(
+      apartment.id
+    )
+  ]);
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+}
+
+/* =========================
+   CARREGAR MORADORES
+========================= */
+
+async function loadResidents(
+  apartmentId
+) {
+
+  $('residentList').innerHTML =
+    `
+      <div class="loading">
+        Carregando moradores...
+      </div>
+    `;
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await client
+        .from(
+          'admin_residents_view'
+        )
+        .select('*')
+        .eq(
+          'apartment_id',
+          apartmentId
+        )
+        .order(
+          'created_at'
+        );
+
+    if (error) {
+      throw error;
+    }
+
+    if (
+      !data ||
+      data.length === 0
+    ) {
+
+      $('residentList').innerHTML =
+        `
+          <div class="empty">
+            Nenhum morador vinculado.
+          </div>
+        `;
+
+      return;
+    }
+
+    $('residentList').innerHTML =
+      '';
+
+    data.forEach(
+      resident => {
+
+        const item =
+          document.createElement(
+            'div'
+          );
+
+        item.className =
+          'list-item';
+
+        item.innerHTML =
+          `
+            <div class="list-top">
+
+              <div>
+
+                <h4>
+                  ${esc(
+                    resident.full_name ||
+                    resident.email ||
+                    'Morador'
+                  )}
+                </h4>
+
+                <p>
+
+                  ${esc(
+                    resident.email ||
+                    ''
+                  )}
+
+                  ${
+                    resident.phone
+                      ? ' • ' +
+                        esc(
+                          resident.phone
+                        )
+                      : ''
+                  }
+
+                  <br>
+
+                  ${esc(
+                    typeLabel(
+                      resident.resident_type
+                    )
+                  )}
+
+                </p>
+
+                <span class="pill ${
+                  resident.active
+                    ? 'green'
+                    : 'gray'
+                }">
+
+                  ${
+                    resident.active
+                      ? 'Ativo'
+                      : 'Inativo'
+                  }
+
+                </span>
+
+              </div>
+
+              <button
+                class="btn ${
+                  resident.active
+                    ? 'btn-danger'
+                    : 'btn-secondary'
+                } btn-small"
+              >
+
+                ${
+                  resident.active
+                    ? 'Desativar'
+                    : 'Ativar'
+                }
+
+              </button>
+
+            </div>
+          `;
+
+        item
+          .querySelector(
+            'button'
+          )
+          .onclick =
+            () =>
+              setResidentStatus(
+                resident,
+                !resident.active
+              );
+
+        $('residentList')
+          .appendChild(
+            item
+          );
+      }
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    $('residentList').innerHTML =
+      `
+        <div class="empty">
+          Não foi possível carregar os moradores.
+          <br>
+          ${esc(error.message || '')}
+        </div>
+      `;
+  }
+}
+
+/* =========================
+   ATIVAR / DESATIVAR
+========================= */
+
+async function setResidentStatus(
+  resident,
+  active
+) {
+
+  const action =
+    active
+      ? 'Ativar'
+      : 'Desativar';
+
+  const confirmed =
+    confirm(
+      `${action} ${
+        resident.full_name ||
+        'este morador'
+      }?`
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+
+    const {
+      error
+    } =
+      await client.rpc(
+        'set_resident_status',
+        {
+          p_user_id:
+            resident.user_id,
+
+          p_apartment_id:
+            resident.apartment_id,
+
+          p_active:
+            active
+        }
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    await loadResidents(
+      resident.apartment_id
+    );
+
+    await loadApartments();
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      error.message ||
+      'Não foi possível alterar o status.'
+    );
+  }
+}
+
+/* =========================
+   CARREGAR CONVITES
+========================= */
+
+async function loadInvites(
+  apartmentId
+) {
+
+  $('inviteList').innerHTML =
+    `
+      <div class="loading">
+        Carregando convites...
+      </div>
+    `;
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await client
+        .from(
+          'resident_invites'
+        )
+        .select('*')
+        .eq(
+          'apartment_id',
+          apartmentId
+        )
+        .order(
+          'created_at',
+          {
+            ascending: false
+          }
+        );
+
+    if (error) {
+      throw error;
+    }
+
+    if (
+      !data ||
+      data.length === 0
+    ) {
+
+      $('inviteList').innerHTML =
+        `
+          <div class="empty">
+            Nenhum convite criado.
+          </div>
+        `;
+
+      return;
+    }
+
+    $('inviteList').innerHTML =
+      '';
+
+    data.forEach(
+      invite => {
+
+        let status =
+          'Pendente';
+
+        let statusClass =
+          'orange';
+
+        if (invite.used_at) {
+
+          status =
+            'Utilizado';
+
+          statusClass =
+            'green';
+
+        } else if (
+          invite.revoked_at
+        ) {
+
+          status =
+            'Cancelado';
+
+          statusClass =
+            'gray';
+
+        } else if (
+          new Date(
+            invite.expires_at
+          ) < new Date()
+        ) {
+
+          status =
+            'Expirado';
+
+          statusClass =
+            'red';
+        }
+
+        const canCancel =
+          !invite.used_at &&
+          !invite.revoked_at &&
+          new Date(
+            invite.expires_at
+          ) >= new Date();
+
+        const item =
+          document.createElement(
+            'div'
+          );
+
+        item.className =
+          'list-item';
+
+        item.innerHTML =
+          `
+            <div class="list-top">
+
+              <div>
+
+                <h4>
+                  ${esc(
+                    invite.full_name ||
+                    invite.email ||
+                    'Convite'
+                  )}
+                </h4>
+
+                <p>
+
+                  ${esc(
+                    invite.email ||
+                    ''
+                  )}
+
+                  <br>
+
+                  Código:
+                  <strong>
+                    ${esc(invite.code)}
+                  </strong>
+
+                  <br>
+
+                  Validade:
+                  ${esc(
+                    dateBR(
+                      invite.expires_at
+                    )
+                  )}
+
+                </p>
+
+                <span
+                  class="pill ${statusClass}"
+                >
+                  ${status}
+                </span>
+
+              </div>
+
+              ${
+                canCancel
+                  ? `
+                    <button
+                      class="btn btn-danger btn-small"
+                    >
+                      Cancelar
+                    </button>
+                  `
+                  : ''
+              }
+
+            </div>
+          `;
+
+        const button =
+          item.querySelector(
+            'button'
+          );
+
+        if (button) {
+
+          button.onclick =
+            () =>
+              revokeInvite(
+                invite.id
+              );
+        }
+
+        $('inviteList')
+          .appendChild(
+            item
+          );
+      }
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    $('inviteList').innerHTML =
+      `
+        <div class="empty">
+          Não foi possível carregar os convites.
+          <br>
+          ${esc(error.message || '')}
+        </div>
+      `;
+  }
+}
+
+/* =========================
+   CANCELAR CONVITE
+========================= */
+
+async function revokeInvite(
+  inviteId
+) {
+
+  if (
+    !confirm(
+      'Cancelar este convite?'
+    )
+  ) {
+    return;
+  }
+
+  try {
+
+    const {
+      error
+    } =
+      await client.rpc(
+        'revoke_resident_invite',
+        {
+          p_invite_id:
+            inviteId
+        }
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    await loadInvites(
+      currentApartment.id
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      error.message ||
+      'Não foi possível cancelar o convite.'
+    );
+  }
+}
+
+/* =========================
+   ABRIR MODAL
+========================= */
+
+$('newInviteButton').onclick =
+  () => {
+
+    $('inviteForm').reset();
+
+    clearMsg(
+      $('inviteMessage')
+    );
+
+    $('inviteResult')
+      .classList
+      .add('hidden');
+
+    $('inviteResult').innerHTML =
+      '';
+
+    $('inviteApartmentLabel')
+      .textContent =
+        `Apartamento ${currentApartment.number}`;
+
+    $('inviteModal')
+      .classList
+      .remove('hidden');
+  };
+
+/* =========================
+   FECHAR MODAL
+========================= */
+
+$('closeInviteModal').onclick =
+  () => {
+
+    $('inviteModal')
+      .classList
+      .add('hidden');
+  };
+
+$('inviteModal')
+  .addEventListener(
+    'click',
+    event => {
+
+      if (
+        event.target ===
+        $('inviteModal')
+      ) {
+
+        $('inviteModal')
+          .classList
+          .add('hidden');
+      }
+
+    }
+  );
+
+/* =========================
+   CRIAR CONVITE
+========================= */
+
+$('inviteForm')
+  .addEventListener(
+    'submit',
+    async event => {
+
+      event.preventDefault();
+
+      clearMsg(
+        $('inviteMessage')
+      );
+
+      $('createInviteButton')
+        .disabled = true;
+
+      const params = {
+
+        p_apartment_id:
+          currentApartment.id,
+
+        p_email:
+          $('inviteEmail')
+            .value
+            .trim()
+            .toLowerCase(),
+
+        p_full_name:
+          $('inviteName')
+            .value
+            .trim(),
+
+        p_phone:
+          $('invitePhone')
+            .value
+            .trim() ||
+          null,
+
+        p_resident_type:
+          $('inviteType')
+            .value
+      };
+
+      try {
+
+        const {
+          data,
+          error
+        } =
+          await client.rpc(
+            'create_resident_invite',
+            params
+          );
+
+        if (error) {
+          throw error;
+        }
+
+        const result =
+          Array.isArray(data)
+            ? data[0]
+            : data;
+
+        const code =
+          result?.invite_code ||
+          '';
+
+        $('inviteResult')
+          .classList
+          .remove('hidden');
+
+        $('inviteResult')
+          .innerHTML =
+            `
+              <strong>
+                Convite criado com sucesso
+              </strong>
+
+              <div class="invite-code">
+                ${esc(code)}
+              </div>
+
+              <p class="muted">
+
+                Válido até
+                ${esc(
+                  dateBR(
+                    result?.expires_at
+                  )
+                )}.
+
+                Envie este código ao morador junto com o endereço do portal.
+
+              </p>
+
+              <button
+                id="copyInvite"
+                type="button"
+                class="btn btn-secondary btn-small"
+                style="margin-top:10px"
+              >
+                📋 Copiar código
+              </button>
+            `;
+
+        $('copyInvite').onclick =
+          async () => {
+
+            try {
+
+              await navigator
+                .clipboard
+                .writeText(
+                  code
+                );
+
+              $('copyInvite')
+                .textContent =
+                  '✓ Copiado';
+
+            } catch (error) {
+
+              console.error(error);
+            }
+          };
+
+        await loadInvites(
+          currentApartment.id
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        msg(
+          $('inviteMessage'),
+          error.message ||
+          'Não foi possível gerar o convite.'
+        );
+
+      } finally {
+
+        $('createInviteButton')
+          .disabled = false;
+      }
+
+    }
+  );
+
+/* =========================
+   CONVITE PENDENTE
+========================= */
+
+async function maybeAcceptPendingInvite() {
+
+  const code =
+    localStorage.getItem(
+      'jacaranda_pending_invite'
+    );
+
+  if (!code) {
+    return false;
+  }
+
+  const {
+    data: {
+      session
+    }
+  } =
+    await client.auth
+      .getSession();
+
+  if (
+    !session?.user
+  ) {
+    return false;
+  }
+
+  $('portal')
+    .classList
+    .add('hidden');
+
+  $('authScreen')
+    .classList
+    .remove('hidden');
+
+  $('loginView')
+    .classList
+    .add('hidden');
+
+  $('signupView')
+    .classList
+    .add('hidden');
+
+  $('acceptView')
+    .classList
+    .remove('hidden');
+
+  $('acceptCode').value =
+    code;
+
+  return true;
+}
 
 /* =========================
    INICIALIZAÇÃO
-========================== */
+========================= */
 
 async function initialize() {
 
   try {
 
-    const { data, error } =
-      await client.auth.getSession();
+    const {
+      data,
+      error
+    } =
+      await client.auth
+        .getSession();
 
-
-    if (error) {
-
-      console.error(
-        'Erro ao verificar sessão:',
-        error
-      );
+    if (
+      error ||
+      !data.session?.user
+    ) {
 
       showLogin();
 
       return;
     }
 
-
     if (
-      data.session &&
-      data.session.user
+      await maybeAcceptPendingInvite()
     ) {
-
-      await loadPortal(
-        data.session.user
-      );
-
-    } else {
-
-      showLogin();
+      return;
     }
+
+    await loadPortal(
+      data.session.user
+    );
 
   } catch (error) {
 
@@ -1194,7 +2842,6 @@ async function initialize() {
     showLogin();
   }
 }
-
 
 initialize();
 
