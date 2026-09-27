@@ -1049,6 +1049,44 @@ footer{
 }
 .connection-banner.online{ background:#245c4d; }
 
+/* =========================
+   CONFIRMAÇÃO DE E-MAIL
+   Apenas apresentação do retorno da confirmação.
+========================= */
+.confirmation-icon{
+  width:82px;
+  height:82px;
+  margin:0 auto 18px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#e8f2ed;
+  color:#245c4d;
+  font-size:42px;
+  font-weight:800;
+}
+
+.confirmation-view{
+  text-align:center;
+}
+
+.confirmation-view h2{
+  font-size:23px;
+  margin-bottom:9px;
+  color:#163c32;
+}
+
+.confirmation-view p{
+  line-height:1.55;
+  margin-bottom:20px;
+}
+
+.confirmation-view .btn-primary{
+  width:100%;
+  padding:14px;
+}
+
 </style>
 </head>
 
@@ -1159,6 +1197,19 @@ footer{
 
       </form>
 
+    </div>
+
+
+    <div id="confirmationView" class="confirmation-view hidden">
+      <div class="confirmation-icon">✓</div>
+      <h2>E-mail confirmado!</h2>
+      <p class="muted">
+        Seu cadastro no <strong>Condomínio Jacarandá II</strong> foi confirmado com sucesso.<br>
+        Sua conta está pronta para acesso.
+      </p>
+      <button id="confirmationLoginButton" class="btn btn-primary" type="button">
+        Entrar no Portal
+      </button>
     </div>
 
   </div>
@@ -1991,7 +2042,26 @@ function showLogin() {
   $('loginView').classList.remove('hidden');
   $('signupView').classList.add('hidden');
   $('acceptView').classList.add('hidden');
+  $('confirmationView').classList.add('hidden');
 }
+
+function showConfirmation() {
+
+  $('portal').classList.add('hidden');
+  $('authScreen').classList.remove('hidden');
+
+  $('loginView').classList.add('hidden');
+  $('signupView').classList.add('hidden');
+  $('acceptView').classList.add('hidden');
+  $('confirmationView').classList.remove('hidden');
+}
+
+$('confirmationLoginButton').onclick = () => {
+  // Remove somente os parâmetros visuais do retorno da confirmação.
+  // Não altera tabelas, perfil, convite, RLS ou permissões.
+  window.history.replaceState({}, document.title, window.location.pathname);
+  showLogin();
+};
 
 function showPortal() {
 
@@ -8496,11 +8566,31 @@ async function initialize() {
 
   try {
 
+    /*
+      Detecta apenas o retorno do link de confirmação do Supabase.
+      A estrutura de autenticação existente continua intacta.
+    */
+    const params = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(
+      window.location.hash.replace(/^#/, '')
+    );
+
+    const isEmailConfirmationReturn =
+      params.has('code') ||
+      params.get('type') === 'signup' ||
+      hashParams.get('type') === 'signup' ||
+      (hashParams.has('access_token') && hashParams.has('refresh_token'));
+
     const {
       data,
       error
     } = await client.auth
       .getSession();
+
+    if (isEmailConfirmationReturn && !error) {
+      showConfirmation();
+      return;
+    }
 
     if (
       error ||
