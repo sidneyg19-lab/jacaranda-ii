@@ -257,6 +257,71 @@ header{
   align-items:center
 }
 
+.platform-admin-btn{
+  background:#ffffff2b;
+  border:1px solid #ffffff38;
+}
+
+.platform-summary-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  margin-bottom:18px;
+}
+
+.platform-summary-card{
+  background:#f7f9f8;
+  border:1px solid #e5ebe8;
+  border-radius:14px;
+  padding:16px;
+}
+
+.platform-summary-card strong{
+  display:block;
+  font-size:24px;
+  color:var(--tenant-primary);
+  margin-top:5px;
+}
+
+.platform-tenant-card{
+  border:1px solid #e5ebe8;
+  border-radius:15px;
+  padding:16px;
+  background:#fff;
+}
+
+.platform-tenant-card + .platform-tenant-card{
+  margin-top:10px;
+}
+
+.platform-tenant-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+}
+
+.platform-tenant-stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-top:13px;
+}
+
+.platform-stat{
+  padding:10px;
+  border-radius:10px;
+  background:#f7f9f8;
+  font-size:12px;
+}
+
+@media(max-width:600px){
+  .platform-summary-grid,
+  .platform-tenant-stats{
+    grid-template-columns:1fr;
+  }
+}
+
 .header-btn{
   border:0;
   background:#ffffff21;
@@ -1236,6 +1301,10 @@ footer{
 
     <div class="header-actions">
 
+      <button id="platformAdminButton" class="header-btn platform-admin-btn hidden" type="button" title="Administração da Plataforma">
+        ⚙️ <span class="label">Plataforma</span>
+      </button>
+
       <button id="notificationButton" class="header-btn">
         🔔
         <span id="notificationBadge" class="badge hidden">0</span>
@@ -1367,6 +1436,34 @@ footer{
       </p>
     </div>
 
+  </div>
+
+</section>
+
+<section id="platformView" class="hidden">
+
+  <div class="section-title">Administração da Plataforma</div>
+
+  <div class="panel view-header">
+    <div>
+      <h2>⚙️ Painel Geral do SaaS</h2>
+      <p class="muted">Visão global dos condomínios. Seu acesso ao Jacarandá continua separado e usa a mesma sessão.</p>
+    </div>
+    <button id="backToTenantButton" class="btn btn-secondary" type="button">← Voltar ao meu condomínio</button>
+  </div>
+
+  <div id="platformSummary" class="platform-summary-grid"></div>
+
+  <div class="panel">
+    <div class="view-header" style="margin-bottom:14px">
+      <div>
+        <h2>Condomínios</h2>
+        <p class="muted">Tenants cadastrados na plataforma.</p>
+      </div>
+    </div>
+    <div id="platformOrganizationsList" class="list">
+      <div class="loading">Carregando condomínios...</div>
+    </div>
   </div>
 
 </section>
@@ -1719,6 +1816,7 @@ let currentModule = null;
 // pela RPC segura get_my_organizations().
 let currentOrganizations = [];
 let currentOrganization = null;
+let currentIsPlatformAdmin = false;
 
 function applyTenantIdentity() {
   if (!currentOrganization) return;
@@ -1999,6 +2097,7 @@ function hideViews() {
 
   [
     'homeView',
+    'platformView',
     'moduleView',
     'brandingView',
     'residentsView',
@@ -2011,6 +2110,7 @@ function hideViews() {
 
 function showHome() {
 
+  applyTenantIdentity();
   hideViews();
 
   $('homeView')
@@ -2231,6 +2331,79 @@ async function loadOrganizationContext() {
 }
 
 
+async function loadPlatformAccess() {
+  currentIsPlatformAdmin = false;
+
+  const { data, error } = await client.rpc('is_platform_admin');
+
+  if (error) {
+    console.error('Erro ao verificar Platform Admin:', error);
+    return false;
+  }
+
+  currentIsPlatformAdmin = data === true;
+  $('platformAdminButton')?.classList.toggle('hidden', !currentIsPlatformAdmin);
+  return currentIsPlatformAdmin;
+}
+
+async function showPlatformAdmin() {
+  if (!currentIsPlatformAdmin) {
+    alert('Acesso restrito à administração da plataforma.');
+    return;
+  }
+
+  hideViews();
+  $('platformView').classList.remove('hidden');
+  $('platformOrganizationsList').innerHTML = '<div class="loading">Carregando condomínios...</div>';
+  $('platformSummary').innerHTML = '';
+
+  try {
+    const { data, error } = await client.rpc('get_platform_organizations');
+    if (error) throw error;
+
+    const organizations = Array.isArray(data) ? data : [];
+    const totalApartments = organizations.reduce((sum, item) => sum + Number(item.apartments || 0), 0);
+    const totalResidents = organizations.reduce((sum, item) => sum + Number(item.active_residents || 0), 0);
+
+    $('platformSummary').innerHTML = `
+      <div class="platform-summary-card"><span class="muted">Condomínios</span><strong>${organizations.length}</strong></div>
+      <div class="platform-summary-card"><span class="muted">Apartamentos</span><strong>${totalApartments}</strong></div>
+      <div class="platform-summary-card"><span class="muted">Moradores ativos</span><strong>${totalResidents}</strong></div>
+    `;
+
+    if (!organizations.length) {
+      $('platformOrganizationsList').innerHTML = '<div class="empty">Nenhum condomínio encontrado.</div>';
+      return;
+    }
+
+    $('platformOrganizationsList').innerHTML = organizations.map(org => {
+      const isMyTenant = currentOrganizations.some(item => item.organization_id === org.organization_id);
+      return `
+        <div class="platform-tenant-card">
+          <div class="platform-tenant-head">
+            <div>
+              <h4>${esc(org.name)}</h4>
+              <p>${esc(org.slug || '')}</p>
+            </div>
+            ${pill(org.status === 'active' ? 'ativo' : org.status)}
+          </div>
+          <div class="platform-tenant-stats">
+            <div class="platform-stat"><strong>${Number(org.apartments || 0)}</strong><br>apartamentos</div>
+            <div class="platform-stat"><strong>${Number(org.active_residents || 0)}</strong><br>moradores ativos</div>
+            <div class="platform-stat"><strong>${Number(org.administrators || 0)}</strong><br>administradores</div>
+          </div>
+          ${isMyTenant ? '<div style="margin-top:12px"><span class="pill green">Seu condomínio</span></div>' : ''}
+        </div>
+      `;
+    }).join('');
+
+    window.scrollTo({ top:0, behavior:'smooth' });
+  } catch (error) {
+    console.error('Painel da plataforma:', error);
+    $('platformOrganizationsList').innerHTML = `<div class="empty">${esc(friendlyError(error, 'Não foi possível carregar os condomínios.'))}</div>`;
+  }
+}
+
 async function loadPortal(user) {
 
   const {
@@ -2331,6 +2504,7 @@ if (profile.role !== 'admin') {
   }
 
   applyTenantIdentity();
+  await loadPlatformAccess();
 
   $('welcomeName').textContent =
     `Olá, ${profile.full_name || 'Morador'}! 👋`;
@@ -2727,11 +2901,19 @@ $('logoutButton').onclick =
     currentModule = null;
     currentOrganizations = [];
     currentOrganization = null;
+    currentIsPlatformAdmin = false;
+    $('platformAdminButton')?.classList.add('hidden');
 
     showLogin();
   };
 
 $('homeButton').onclick =
+  showHome;
+
+$('platformAdminButton').onclick =
+  showPlatformAdmin;
+
+$('backToTenantButton').onclick =
   showHome;
 
 
@@ -8878,6 +9060,10 @@ client.auth.onAuthStateChange(
       currentUser = null;
       currentApartment = null;
       currentModule = null;
+      currentOrganizations = [];
+      currentOrganization = null;
+      currentIsPlatformAdmin = false;
+      $('platformAdminButton')?.classList.add('hidden');
 
       showLogin();
     }
