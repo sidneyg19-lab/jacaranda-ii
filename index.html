@@ -445,6 +445,21 @@ main{
   margin-bottom:6px
 }
 
+.user-unit{
+  margin-top:8px;
+  color:#5f6e68;
+  font-size:13px;
+  font-weight:700;
+}
+
+.resident-building-card{
+  min-height:120px;
+}
+
+.resident-building-card .apartment-number{
+  margin-bottom:8px;
+}
+
 .role{
   display:inline-block;
   margin-top:10px;
@@ -1411,6 +1426,7 @@ footer{
     </p>
 
     <span id="userRole" class="role"></span>
+    <p id="userUnit" class="user-unit hidden"></p>
 
   </div>
 
@@ -1695,7 +1711,7 @@ footer{
         + Convidar morador
       </button>
 
-      <button class="btn btn-secondary" onclick="showResidents()">
+      <button class="btn btn-secondary" onclick="backFromApartment()">
         ← Apartamentos
       </button>
 
@@ -1913,6 +1929,8 @@ const client =
 let currentProfile = null;
 let currentUser = null;
 let currentApartment = null;
+let currentResidentsBuilding = null;
+let residentsUsesBuildings = false;
 let currentModule = null;
 
 // Contexto multi-tenant. A organização ativa é carregada após o login
@@ -3009,6 +3027,8 @@ if (profile.role !== 'admin') {
     isAdmin()
       ? 'Administrador'
       : 'Morador';
+
+  await loadCurrentUserUnitLabel();
 
   $('residentsCard')
     .classList
@@ -7676,6 +7696,59 @@ function setDateTimeValue(
 }
 
 
+async function loadCurrentUserUnitLabel() {
+  const unitElement = $('userUnit');
+  if (!unitElement) return;
+
+  unitElement.textContent = '';
+  unitElement.classList.add('hidden');
+
+  // Administradores gerenciam o condomínio inteiro e não precisam de uma
+  // unidade fixa no cabeçalho.
+  if (isAdmin()) return;
+
+  try {
+    const { data: myApartments, error: myApartmentsError } = await client.rpc('get_my_apartments');
+    if (myApartmentsError) throw myApartmentsError;
+
+    const first = (myApartments || [])[0];
+    if (!first) return;
+
+    const apartmentId = first.apartment_id ?? first.id;
+    if (!apartmentId) return;
+
+    const { data: apartment, error: apartmentError } = await client
+      .from('apartments')
+      .select('id,number,building_id')
+      .eq('id', apartmentId)
+      .eq('organization_id', currentOrganization.organization_id)
+      .maybeSingle();
+
+    if (apartmentError) throw apartmentError;
+    if (!apartment) return;
+
+    let label = `Apto ${apartment.number}`;
+
+    if (apartment.building_id) {
+      const { data: building, error: buildingError } = await client
+        .from('organization_buildings')
+        .select('id,name')
+        .eq('id', apartment.building_id)
+        .eq('organization_id', currentOrganization.organization_id)
+        .maybeSingle();
+
+      if (buildingError) throw buildingError;
+      if (building?.name) label += ` • ${building.name}`;
+    }
+
+    unitElement.textContent = label;
+    unitElement.classList.remove('hidden');
+  } catch (error) {
+    // Informação complementar: uma falha aqui nunca deve impedir o portal.
+    console.warn('Não foi possível carregar a identificação da unidade:', error);
+  }
+}
+
 /* =========================
    MORADORES
 ========================= */
@@ -7683,16 +7756,14 @@ function setDateTimeValue(
 async function showResidents() {
 
   if (!isAdmin()) {
-
     showHome();
     return;
   }
 
-  hideViews();
+  currentResidentsBuilding = null;
 
-  $('residentsView')
-    .classList
-    .remove('hidden');
+  hideViews();
+  $('residentsView').classList.remove('hidden');
 
   await loadApartments();
 
@@ -7703,173 +7774,188 @@ async function showResidents() {
 }
 
 
-async function loadApartments() {
+async function loadApartments(buildingId = null) {
 
-  $('apartmentsGrid').innerHTML =
-    `
-      <div class="loading">
-        Carregando apartamentos...
-      </div>
-    `;
+  $('apartmentsGrid').innerHTML = `
+    <div class="loading">
+      Carregando apartamentos...
+    </div>
+  `;
 
   try {
+    const organizationId = currentOrganization.organization_id;
 
-    const {
-      data: apartments,
-      error
-    } = await client
-      .from('apartments')
-      .select('*')
-      .eq(
-        'organization_id',
-        currentOrganization.organization_id
-      )
-      .eq(
-        'active',
-        true
-      )
-      .order('number');
+    const [featureResult, buildingsResult, apartmentsResult] = await Promise.all([
+      client
+        .from('organization_features')
+        .select('enabled')
+        .eq('organization_id', organizationId)
+        .eq('feature_key', 'buildings')
+        .maybeSingle(),
+      client
+        .from('organization_buildings')
+        .select('id,name,active')
+        .eq('organization_id', organizationId)
+        .eq('active', true)
+        .order('name'),
+      client
+        .from('apartments')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .eq('active', true)
+        .order('floor')
+        .order('number')
+    ]);
 
-    if (error) {
-      throw error;
+    if (featureResult.error) throw featureResult.error;
+    if (buildingsResult.error) throw buildingsResult.error;
+    if (apartmentsResult.error) throw apartmentsResult.error;
+
+    const buildings = buildingsResult.data || [];
+    const apartments = apartmentsResult.data || [];
+    residentsUsesBuildings = featureResult.data?.enabled === true && buildings.length > 0;
+
+    // Condomínio simples: mantém exatamente a navegação antiga.
+    if (!residentsUsesBuildings) {
+      currentResidentsBuilding = null;
+      await renderResidentApartmentCards(apartments);
+      return;
     }
 
-    const cards = [];
+    // Condomínio com torres/blocos: primeiro nível mostra somente as torres.
+    if (!buildingId) {
+      currentResidentsBuilding = null;
+      $('apartmentsGrid').innerHTML = '';
 
-    /*
-      Usamos a RPC segura para contar os moradores.
-      Assim não dependemos mais da antiga
-      admin_residents_view.
-    */
-
-    for (
-      const apartment
-      of apartments || []
-    ) {
-
-      const {
-        data: residents,
-        error: residentsError
-      } = await client.rpc(
-        'get_apartment_residents',
-        {
-          p_apartment_id:
-            apartment.id
-        }
-      );
-
-      if (residentsError) {
-        throw residentsError;
-      }
-
-      const count =
-        (residents || [])
-          .filter(
-            resident =>
-              resident.active
-          )
-          .length;
-
-      cards.push({
-        apartment,
-        count
-      });
-    }
-
-    if (!cards.length) {
-
-      $('apartmentsGrid').innerHTML =
-        `
-          <div class="empty">
-            Nenhum apartamento encontrado.
+      buildings.forEach(building => {
+        const linkedCount = apartments.filter(apartment => apartment.building_id === building.id).length;
+        const card = document.createElement('div');
+        card.className = 'apartment-card resident-building-card';
+        card.innerHTML = `
+          <div class="apartment-number">🏢 ${esc(building.name)}</div>
+          <div class="apartment-floor">Clique para visualizar as unidades</div>
+          <div class="apartment-info">
+            <strong>${linkedCount}</strong>
+            ${linkedCount === 1 ? 'apartamento' : 'apartamentos'}
+            <br>
+            <span class="pill green">● Ativo</span>
           </div>
         `;
+        card.onclick = () => showResidentsBuilding(building.id, building.name);
+        $('apartmentsGrid').appendChild(card);
+      });
 
       return;
     }
 
-    $('apartmentsGrid').innerHTML =
-      '';
+    const building = buildings.find(item => item.id === buildingId);
+    if (!building) throw new Error('Torre / bloco não encontrado.');
 
-    cards.forEach(
-      ({
-        apartment,
-        count
-      }) => {
+    currentResidentsBuilding = building;
 
-        const card =
-          document.createElement(
-            'div'
-          );
+    const buildingApartments = apartments.filter(apartment => apartment.building_id === building.id);
 
-        card.className =
-          'apartment-card';
+    $('apartmentsGrid').innerHTML = `
+      <div class="panel view-header" style="grid-column:1/-1;margin-bottom:0">
+        <div>
+          <h2>🏢 ${esc(building.name)}</h2>
+          <p class="muted">Selecione um apartamento para consultar moradores e convites.</p>
+        </div>
+        <button class="btn btn-secondary" type="button" onclick="loadApartments()">← Torres / Blocos</button>
+      </div>
+    `;
 
-        card.innerHTML =
-          `
-            <div class="apartment-number">
-              🏠 Apartamento
-              ${esc(apartment.number)}
-            </div>
-
-            <div class="apartment-floor">
-              ${esc(apartment.floor)}º andar
-            </div>
-
-            <div class="apartment-info">
-
-              <strong>
-                ${count}
-              </strong>
-
-              ${
-                count === 1
-                  ? 'morador ativo'
-                  : 'moradores ativos'
-              }
-
-              <br>
-
-              <span class="pill green">
-                ● Ativo
-              </span>
-
-            </div>
-          `;
-
-        card.onclick =
-          () => openApartment(
-            apartment
-          );
-
-        $('apartmentsGrid')
-          .appendChild(card);
-      }
-    );
+    await renderResidentApartmentCards(buildingApartments, true);
 
   } catch (error) {
-
     console.error(error);
 
-    $('apartmentsGrid').innerHTML =
-      `
-        <div class="empty">
-
-          Não foi possível carregar os apartamentos.
-
-          <br>
-
-          ${esc(error.message || '')}
-
-        </div>
-      `;
+    $('apartmentsGrid').innerHTML = `
+      <div class="empty">
+        Não foi possível carregar os apartamentos.
+        <br>
+        ${esc(error.message || '')}
+      </div>
+    `;
   }
+}
+
+
+async function showResidentsBuilding(buildingId, buildingName = '') {
+  currentResidentsBuilding = {
+    id: buildingId,
+    name: buildingName
+  };
+  await loadApartments(buildingId);
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+
+async function renderResidentApartmentCards(apartments, append = false) {
+  const cards = [];
+
+  for (const apartment of apartments || []) {
+    const { data: residents, error: residentsError } = await client.rpc(
+      'get_apartment_residents',
+      { p_apartment_id: apartment.id }
+    );
+
+    if (residentsError) throw residentsError;
+
+    const count = (residents || []).filter(resident => resident.active).length;
+    cards.push({ apartment, count });
+  }
+
+  if (!append) $('apartmentsGrid').innerHTML = '';
+
+  if (!cards.length) {
+    $('apartmentsGrid').insertAdjacentHTML(
+      'beforeend',
+      '<div class="empty">Nenhum apartamento encontrado.</div>'
+    );
+    return;
+  }
+
+  cards.forEach(({ apartment, count }) => {
+    const card = document.createElement('div');
+    card.className = 'apartment-card';
+    card.innerHTML = `
+      <div class="apartment-number">
+        🏠 Apartamento ${esc(apartment.number)}
+      </div>
+      <div class="apartment-floor">
+        ${esc(apartment.floor)}º andar
+      </div>
+      <div class="apartment-info">
+        <strong>${count}</strong>
+        ${count === 1 ? 'morador ativo' : 'moradores ativos'}
+        <br>
+        <span class="pill green">● Ativo</span>
+      </div>
+    `;
+    card.onclick = () => openApartment(apartment);
+    $('apartmentsGrid').appendChild(card);
+  });
 }
 
 
 /* =========================
    APARTAMENTO
 ========================= */
+
+async function backFromApartment() {
+  hideViews();
+  $('residentsView').classList.remove('hidden');
+
+  if (residentsUsesBuildings && currentResidentsBuilding?.id) {
+    await loadApartments(currentResidentsBuilding.id);
+  } else {
+    await loadApartments();
+  }
+
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
 
 async function openApartment(
   apartment
