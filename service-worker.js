@@ -1,4 +1,4 @@
-const CACHE_NAME = 'portal-morador-v5';
+const CACHE_NAME = 'portal-morador-v6';
 
 const APP_FILES = [
   './',
@@ -23,6 +23,10 @@ self.addEventListener('install', event => {
       )
   );
 
+  /*
+    Faz a nova versão do Service Worker
+    assumir sem ficar aguardando indefinidamente.
+  */
   self.skipWaiting();
 });
 
@@ -37,6 +41,9 @@ self.addEventListener('activate', event => {
 
     Promise.all([
 
+      /*
+        Remove caches antigos do Portal.
+      */
       caches.keys()
         .then(keys =>
           Promise.all(
@@ -52,6 +59,10 @@ self.addEventListener('activate', event => {
           )
         ),
 
+      /*
+        Faz o novo Service Worker assumir
+        as páginas abertas.
+      */
       self.clients.claim()
 
     ])
@@ -65,6 +76,10 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
 
+  /*
+    Cache somente para requisições GET.
+    POST, PATCH, DELETE etc. seguem normalmente.
+  */
   if (
     event.request.method !== 'GET'
   ) {
@@ -73,6 +88,14 @@ self.addEventListener('fetch', event => {
 
   event.respondWith(
 
+    /*
+      NETWORK FIRST
+
+      Sempre tenta buscar a versão mais recente
+      na rede primeiro.
+
+      Se a internet falhar, utiliza o cache.
+    */
     fetch(event.request)
 
       .then(response => {
@@ -80,7 +103,6 @@ self.addEventListener('fetch', event => {
         /*
           Só armazenamos respostas válidas.
         */
-
         if (
           response &&
           response.status === 200
@@ -112,6 +134,10 @@ self.addEventListener('fetch', event => {
         return response;
       })
 
+      /*
+        Sem conexão:
+        tenta entregar a versão armazenada.
+      */
       .catch(() =>
         caches.match(
           event.request
@@ -138,6 +164,12 @@ self.addEventListener('push', event => {
 
   } catch (error) {
 
+    /*
+      Fallback genérico da plataforma.
+
+      Não usamos nome de condomínio aqui,
+      pois a PWA atende múltiplos tenants.
+    */
     data = {
 
       title:
@@ -150,6 +182,7 @@ self.addEventListener('push', event => {
 
     };
   }
+
 
   const notificationData = {
 
@@ -171,11 +204,19 @@ self.addEventListener('push', event => {
 
   };
 
+
   event.waitUntil(
 
     self.registration
       .showNotification(
 
+        /*
+          Se o backend enviar o nome do condomínio,
+          usamos esse título.
+
+          Caso contrário:
+          Portal do Morador.
+        */
         data.title ||
         'Portal do Morador',
 
@@ -185,6 +226,13 @@ self.addEventListener('push', event => {
             data.body ||
             'Você tem uma nova notificação.',
 
+          /*
+            Pode receber futuramente a logo
+            específica do condomínio pelo push.
+
+            Caso não receba:
+            usa o ícone geral do Portal.
+          */
           icon:
             data.icon ||
             './icon-192.png',
@@ -193,6 +241,9 @@ self.addEventListener('push', event => {
             data.badge ||
             './icon-192.png',
 
+          /*
+            Identificador genérico da plataforma.
+          */
           tag:
             data.notificationId
               ? `portal-morador-${data.notificationId}`
@@ -223,16 +274,17 @@ self.addEventListener(
     const notificationData =
       event.notification.data || {};
 
+
     /*
       URL base enviada pela Edge Function.
     */
-
     const targetUrl =
       new URL(
         notificationData.url ||
         './',
         self.registration.scope
       );
+
 
     /*
       Adicionamos os dados necessários
@@ -250,6 +302,7 @@ self.addEventListener(
       );
     }
 
+
     if (
       notificationData.referenceId
     ) {
@@ -259,6 +312,7 @@ self.addEventListener(
         notificationData.referenceId
       );
     }
+
 
     if (
       notificationData.notificationId
@@ -270,22 +324,24 @@ self.addEventListener(
       );
     }
 
+
     const finalUrl =
       targetUrl.href;
+
 
     event.waitUntil(
 
       self.clients
         .matchAll({
-          type:'window',
-          includeUncontrolled:true
+          type: 'window',
+          includeUncontrolled: true
         })
 
         .then(async windowClients => {
 
           /*
-            Se o PWA já estiver aberto,
-            usamos a janela existente.
+            Se o Portal já estiver aberto,
+            reutilizamos a janela existente.
           */
 
           for (
@@ -310,6 +366,7 @@ self.addEventListener(
                   );
                 }
 
+
                 if (
                   'focus' in client
                 ) {
@@ -327,8 +384,9 @@ self.addEventListener(
             }
           }
 
+
           /*
-            Se o PWA estiver fechado,
+            Se o Portal estiver fechado,
             abre uma nova janela.
           */
 
@@ -341,6 +399,7 @@ self.addEventListener(
                 finalUrl
               );
           }
+
 
           return null;
         })
