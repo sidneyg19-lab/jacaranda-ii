@@ -1,7 +1,7 @@
 {
-  "name": "Jacarandá II",
-  "short_name": "Jacarandá II",
-  "description": "Portal do Morador - Condomínio Jacarandá II",
+  "name": "Portal do Morador",
+  "short_name": "Portal",
+  "description": "Portal do Morador",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
