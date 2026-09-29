@@ -1664,6 +1664,11 @@ let currentUser = null;
 let currentApartment = null;
 let currentModule = null;
 
+// Contexto multi-tenant. A organização ativa é carregada após o login
+// pela RPC segura get_my_organizations().
+let currentOrganizations = [];
+let currentOrganization = null;
+
 const $ = id =>
   document.getElementById(id);
 
@@ -1845,7 +1850,11 @@ function typeLabel(value) {
 
 function isAdmin() {
 
-  return currentProfile?.role === 'admin';
+  // A autorização visual passa a respeitar o papel no tenant ativo.
+  // O banco/RLS continua sendo a fonte final de autorização.
+  return ['owner','admin'].includes(
+    currentOrganization?.role
+  );
 }
 
 function v(id) {
@@ -2071,6 +2080,48 @@ function showPortal() {
   showHome();
 }
 
+async function loadOrganizationContext() {
+
+  const {
+    data,
+    error
+  } = await client.rpc(
+    'get_my_organizations'
+  );
+
+  if (error) {
+    console.error(
+      'Erro ao carregar organizações:',
+      error
+    );
+
+    throw new Error(
+      'Não foi possível carregar o condomínio vinculado ao seu acesso.'
+    );
+  }
+
+  currentOrganizations =
+    Array.isArray(data) ? data : [];
+
+  currentOrganization =
+    currentOrganizations.length === 1
+      ? currentOrganizations[0]
+      : null;
+
+  /*
+    Nesta etapa mantemos o comportamento atual do Jacarandá II.
+    Quando houver mais de um tenant para o mesmo usuário,
+    o seletor de condomínio será exibido antes de abrir o portal.
+  */
+  if (currentOrganizations.length > 1) {
+    currentOrganization =
+      currentOrganizations[0];
+  }
+
+  return currentOrganization;
+}
+
+
 async function loadPortal(user) {
 
   const {
@@ -2144,11 +2195,37 @@ if (profile.role !== 'admin') {
     return;
   }
 }
+
+  try {
+    await loadOrganizationContext();
+  } catch (organizationError) {
+    await client.auth.signOut();
+    showLogin();
+    msg(
+      $('loginMessage'),
+      friendlyError(
+        organizationError,
+        'Não foi possível carregar o condomínio vinculado ao seu acesso.'
+      )
+    );
+    return;
+  }
+
+  if (!currentOrganization) {
+    await client.auth.signOut();
+    showLogin();
+    msg(
+      $('loginMessage'),
+      'Seu usuário ainda não possui um condomínio ativo vinculado.'
+    );
+    return;
+  }
+
   $('welcomeName').textContent =
     `Olá, ${profile.full_name || 'Morador'}! 👋`;
 
   $('userRole').textContent =
-    profile.role === 'admin'
+    isAdmin()
       ? 'Administrador'
       : 'Morador';
 
@@ -2530,6 +2607,8 @@ $('logoutButton').onclick =
     currentUser = null;
     currentApartment = null;
     currentModule = null;
+    currentOrganizations = [];
+    currentOrganization = null;
 
     showLogin();
   };
@@ -2544,7 +2623,10 @@ $('homeButton').onclick =
 
 async function refreshDashboard() {
 
-  if (!currentUser) {
+  if (
+    !currentUser ||
+    !currentOrganization?.organization_id
+  ) {
     return;
   }
 
@@ -2554,7 +2636,11 @@ async function refreshDashboard() {
       data,
       error
     } = await client.rpc(
-      'get_dashboard_counts'
+      'get_dashboard_counts',
+      {
+        p_organization_id:
+          currentOrganization.organization_id
+      }
     );
 
     if (!error && data) {
