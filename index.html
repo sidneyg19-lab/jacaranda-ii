@@ -5870,8 +5870,8 @@ function documentForm(
               );
 
           const newPath =
-            `${currentUser.id}/${Date.now()}-${safeName}`;
-
+            `${currentOrganization.organization_id}/${currentUser.id}/${Date.now()}-${safeName}`;
+          
           const upload =
             await client.storage
               .from('condo-documents')
