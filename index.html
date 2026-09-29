@@ -2154,8 +2154,6 @@ function sel(
 
 function showLogin() {
 
-  document.title = 'Portal do Condomínio • Portal do Morador';
-
   $('portal').classList.add('hidden');
   $('authScreen').classList.remove('hidden');
 
@@ -2220,7 +2218,7 @@ async function loadOrganizationContext() {
       : null;
 
   /*
-    Nesta etapa mantemos o comportamento atual do Jacarandá II.
+    Nesta etapa mantemos o comportamento atual do Portal do Morador.
     Quando houver mais de um tenant para o mesmo usuário,
     o seletor de condomínio será exibido antes de abrir o portal.
   */
@@ -2555,7 +2553,7 @@ $('signupForm').addEventListener(
 
         options: {
           emailRedirectTo:
-            'https://sidneyg19-lab.github.io/jacaranda-ii/',
+            new URL('./', window.location.href).href,
 
           data: {
             full_name:fullName,
@@ -2597,7 +2595,7 @@ $('signupForm').addEventListener(
       } else {
 
         localStorage.setItem(
-          'jacaranda_pending_invite',
+          'portal_pending_invite',
           code
         );
 
@@ -2669,7 +2667,7 @@ $('acceptForm').addEventListener(
       }
 
       localStorage.removeItem(
-        'jacaranda_pending_invite'
+        'portal_pending_invite'
       );
 
       msg(
@@ -8610,7 +8608,7 @@ async function openPushTarget(
   if (!currentUser) {
 
     localStorage.setItem(
-      'jacaranda_push_target',
+      'portal_push_target',
       JSON.stringify({
         type:
           type || '',
@@ -8670,7 +8668,7 @@ async function processPendingPushTarget() {
 
     const saved =
       localStorage.getItem(
-        'jacaranda_push_target'
+        'portal_push_target'
       );
 
     if (saved) {
@@ -8704,7 +8702,7 @@ async function processPendingPushTarget() {
   }
 
   localStorage.removeItem(
-    'jacaranda_push_target'
+    'portal_push_target'
   );
 
   /*
@@ -8777,7 +8775,7 @@ async function maybeAcceptPendingInvite() {
 
   const code =
     localStorage.getItem(
-      'jacaranda_pending_invite'
+      'portal_pending_invite'
     );
 
   if (!code) {
@@ -8879,7 +8877,7 @@ function showApartmentLinkScreen() {
 
   const pendingCode =
     localStorage.getItem(
-      'jacaranda_pending_invite'
+      'portal_pending_invite'
     );
 
   if (pendingCode) {
