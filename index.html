@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta id="themeColorMeta" name="theme-color" content="#163c32">
 
-<title>Portal do Condomínio - TESTE</title>  
+<title>Portal do Condomínio • Portal do Morador</title>  
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon-192.png">
 
@@ -1750,7 +1750,7 @@ function applyTenantIdentity() {
   const themeMeta = document.getElementById('themeColorMeta');
   if (themeMeta) themeMeta.setAttribute('content', primaryColor);
 
-  document.title = `${tenantName} • TESTE`;
+  document.title = `${tenantName} • Portal do Morador`;
 
   const authName = $('authTenantName');
   const portalName = $('portalTenantName');
@@ -2153,6 +2153,8 @@ function sel(
 ========================= */
 
 function showLogin() {
+
+  document.title = 'Portal do Condomínio • Portal do Morador';
 
   $('portal').classList.add('hidden');
   $('authScreen').classList.remove('hidden');
