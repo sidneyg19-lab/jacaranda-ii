@@ -3827,6 +3827,10 @@ async function requestForm() {
           'id,number,floor'
         )
         .eq(
+          'organization_id',
+          currentOrganization.organization_id
+        )
+        .eq(
           'active',
           true
         )
@@ -6896,15 +6900,42 @@ async function deleteRecord(
 
   try {
 
-    const {
-      error
-    } = await client
+    const tenantTables = new Set([
+      'notices',
+      'requests',
+      'events',
+      'cleaning_tasks',
+      'maintenance_tasks',
+      'goals'
+    ]);
+
+    if (
+      tenantTables.has(table) &&
+      !currentOrganization?.organization_id
+    ) {
+      throw new Error(
+        'Não foi possível identificar o condomínio ativo.'
+      );
+    }
+
+    let query = client
       .from(table)
       .delete()
       .eq(
         'id',
         id
       );
+
+    if (tenantTables.has(table)) {
+      query = query.eq(
+        'organization_id',
+        currentOrganization.organization_id
+      );
+    }
+
+    const {
+      error
+    } = await query;
 
     if (error) {
       throw error;
@@ -7007,6 +7038,10 @@ async function loadApartments() {
     } = await client
       .from('apartments')
       .select('*')
+      .eq(
+        'organization_id',
+        currentOrganization.organization_id
+      )
       .eq(
         'active',
         true
