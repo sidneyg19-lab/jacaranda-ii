@@ -1,4 +1,4 @@
-const CACHE_NAME = 'portal-morador-v4';
+const CACHE_NAME = 'portal-morador-v5';
 
 const APP_FILES = [
   './',
