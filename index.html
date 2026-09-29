@@ -2600,19 +2600,127 @@ function renderTenantBuildings(buildingsEnabled, buildings) {
   }
 
   $('tenantStructureDescription').textContent = 'Estrutura com Torres / Blocos ativada para este condomínio.';
+
+  const newButton = `
+    <div class="actions" style="margin-bottom:12px">
+      <button class="btn btn-primary btn-small" type="button" onclick="openBuildingForm()">+ Nova Torre / Bloco</button>
+    </div>
+  `;
+
   if (!buildings.length) {
-    $('tenantBuildingsArea').innerHTML = '<div class="empty">Recurso ativado. Nenhuma torre ou bloco cadastrado ainda.</div>';
+    $('tenantBuildingsArea').innerHTML = newButton + '<div class="empty">Recurso ativado. Nenhuma torre ou bloco cadastrado ainda.</div>';
     return;
   }
 
-  $('tenantBuildingsArea').innerHTML = buildings.map(building => `
+  $('tenantBuildingsArea').innerHTML = newButton + buildings.map(building => `
     <div class="list-item">
       <div class="list-top">
-        <div><h4>${esc(building.name)}</h4><p>${building.active ? 'Ativo' : 'Inativo'}</p></div>
+        <div>
+          <h4>${esc(building.name)}</h4>
+          <p>${building.active ? 'Ativo' : 'Inativo'}</p>
+        </div>
         ${pill(building.active ? 'ativo' : 'inativo')}
+      </div>
+      <div class="actions" style="margin-top:10px">
+        <button class="btn btn-secondary btn-small" type="button"
+          onclick="openBuildingForm('${esc(building.id)}', '${esc(String(building.name).replace(/'/g, "\\'"))}')">Editar</button>
+        <button class="btn ${building.active ? 'btn-danger' : 'btn-primary'} btn-small" type="button"
+          onclick="setBuildingActive('${esc(building.id)}', ${building.active ? 'false' : 'true'})">
+          ${building.active ? 'Desativar' : 'Ativar'}
+        </button>
       </div>
     </div>
   `).join('');
+}
+
+function openBuildingForm(buildingId = '', buildingName = '') {
+  if (!currentIsPlatformAdmin || !currentPlatformOrganization?.organization_id) return;
+
+  $('genericModalTitle').textContent = buildingId ? 'Editar Torre / Bloco' : 'Nova Torre / Bloco';
+  $('genericModalSubtitle').textContent = `Condomínio: ${currentPlatformOrganization.name || ''}`;
+  $('genericModalBody').innerHTML = `
+    <form id="buildingForm">
+      <div class="field">
+        <label>Nome da Torre / Bloco</label>
+        <input id="buildingName" maxlength="120" value="${esc(buildingName)}" placeholder="Ex.: Torre A, Bloco 1" required>
+      </div>
+      <div class="actions">
+        <button id="buildingSaveButton" class="btn btn-primary" type="submit">Salvar</button>
+        <button class="btn btn-secondary" type="button" onclick="closeModal('genericModal')">Cancelar</button>
+      </div>
+      <div id="buildingMessage" class="message"></div>
+    </form>
+  `;
+
+  $('genericModal').classList.remove('hidden');
+  $('buildingName')?.focus();
+
+  $('buildingForm').onsubmit = async event => {
+    event.preventDefault();
+    await saveBuilding(buildingId);
+  };
+}
+
+async function saveBuilding(buildingId = '') {
+  const organizationId = currentPlatformOrganization?.organization_id;
+  const name = $('buildingName')?.value.trim();
+  const button = $('buildingSaveButton');
+  const message = $('buildingMessage');
+
+  if (!currentIsPlatformAdmin || !organizationId) return;
+  if (!name) {
+    msg(message, 'Informe o nome da Torre / Bloco.');
+    return;
+  }
+
+  button.disabled = true;
+  clearMsg(message);
+
+  try {
+    let result;
+
+    if (buildingId) {
+      result = await client
+        .from('organization_buildings')
+        .update({ name, updated_at: new Date().toISOString() })
+        .eq('id', buildingId)
+        .eq('organization_id', organizationId);
+    } else {
+      result = await client
+        .from('organization_buildings')
+        .insert({ organization_id: organizationId, name, active: true });
+    }
+
+    if (result.error) throw result.error;
+
+    closeModal('genericModal');
+    await loadTenantFeatures(organizationId);
+  } catch (error) {
+    console.error('Salvar Torre / Bloco:', error);
+    const duplicate = String(error?.code || '') === '23505';
+    msg(message, duplicate ? 'Já existe uma Torre / Bloco com esse nome neste condomínio.' : friendlyError(error, 'Não foi possível salvar a Torre / Bloco.'));
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+async function setBuildingActive(buildingId, active) {
+  const organizationId = currentPlatformOrganization?.organization_id;
+  if (!currentIsPlatformAdmin || !organizationId) return;
+
+  try {
+    const { error } = await client
+      .from('organization_buildings')
+      .update({ active, updated_at: new Date().toISOString() })
+      .eq('id', buildingId)
+      .eq('organization_id', organizationId);
+
+    if (error) throw error;
+    await loadTenantFeatures(organizationId);
+  } catch (error) {
+    console.error('Alterar Torre / Bloco:', error);
+    alert(friendlyError(error, 'Não foi possível alterar a Torre / Bloco.'));
+  }
 }
 
 async function setTenantFeature(featureKey, enabled, input) {
