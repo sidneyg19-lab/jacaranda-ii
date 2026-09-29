@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jacaranda-ii-v3';
+const CACHE_NAME = 'portal-morador-v4';
 
 const APP_FILES = [
   './',
@@ -141,7 +141,7 @@ self.addEventListener('push', event => {
     data = {
 
       title:
-        'Jacarandá II',
+        'Portal do Morador',
 
       body:
         event.data
@@ -177,7 +177,7 @@ self.addEventListener('push', event => {
       .showNotification(
 
         data.title ||
-        'Jacarandá II',
+        'Portal do Morador',
 
         {
 
@@ -195,7 +195,7 @@ self.addEventListener('push', event => {
 
           tag:
             data.notificationId
-              ? `jacaranda-${data.notificationId}`
+              ? `portal-morador-${data.notificationId}`
               : undefined,
 
           renotify:
