@@ -1328,6 +1328,12 @@ footer{
       <p>Cadastro dos apartamentos e moradores.</p>
     </div>
 
+    <div id="brandingCard" class="card hidden">
+      <div class="icon">🎨</div>
+      <h3>Identidade visual</h3>
+      <p>Nome, logo e cores deste condomínio.</p>
+    </div>
+
     <div class="card" data-module="documents">
       <span id="countDocuments" class="card-count">0</span>
       <div class="icon">📁</div>
@@ -1394,6 +1400,48 @@ footer{
   </div>
 
   <div id="moduleList" class="list"></div>
+
+</section>
+
+<section id="brandingView" class="hidden">
+
+  <div class="section-title">Administração</div>
+
+  <div class="panel view-header">
+    <div>
+      <h2>🎨 Identidade visual</h2>
+      <p class="muted">Personalize somente a identidade do condomínio ativo.</p>
+    </div>
+    <button class="btn btn-secondary" onclick="showHome()">← Voltar</button>
+  </div>
+
+  <div class="panel">
+    <form id="brandingForm">
+      <div class="form-grid">
+        <div class="field full">
+          <label>Nome de exibição</label>
+          <input id="brandingDisplayName" maxlength="120" required>
+        </div>
+        <div class="field">
+          <label>Cor principal</label>
+          <input id="brandingPrimaryColor" type="color" value="#163c32">
+        </div>
+        <div class="field">
+          <label>Cor secundária</label>
+          <input id="brandingSecondaryColor" type="color" value="#245c4d">
+        </div>
+        <div class="field full">
+          <label>Logo do condomínio</label>
+          <input id="brandingLogoFile" type="file" accept="image/png,image/jpeg,image/webp">
+          <p class="muted" style="margin-top:6px">PNG, JPG ou WebP, até 2 MB. Prefira imagem quadrada.</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="brandingSaveButton" class="btn btn-primary" type="submit">Salvar identidade</button>
+      </div>
+      <div id="brandingMessage" class="message"></div>
+    </form>
+  </div>
 
 </section>
 
@@ -2299,6 +2347,13 @@ if (profile.role !== 'admin') {
       !isAdmin()
     );
 
+  $('brandingCard')
+    .classList
+    .toggle(
+      'hidden',
+      !isAdmin()
+    );
+
   showPortal();
 
   await refreshPushButton();
@@ -2985,6 +3040,99 @@ async function loadLatestNotice() {
 
 
 /* =========================
+   IDENTIDADE VISUAL DO TENANT
+========================= */
+
+function showBranding() {
+  if (!isAdmin() || !currentOrganization?.organization_id) {
+    alert('Apenas administradores do condomínio podem alterar a identidade visual.');
+    return;
+  }
+
+  document.querySelectorAll('main > section').forEach(section =>
+    section.classList.add('hidden')
+  );
+
+  $('brandingDisplayName').value =
+    currentOrganization.display_name || currentOrganization.name || '';
+  $('brandingPrimaryColor').value =
+    currentOrganization.primary_color || '#163c32';
+  $('brandingSecondaryColor').value =
+    currentOrganization.secondary_color || '#245c4d';
+  $('brandingLogoFile').value = '';
+  clearMsg($('brandingMessage'));
+  $('brandingView').classList.remove('hidden');
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+$('brandingForm').addEventListener('submit', async event => {
+  event.preventDefault();
+
+  if (!isAdmin() || !currentOrganization?.organization_id) return;
+
+  const button = $('brandingSaveButton');
+  const messageElement = $('brandingMessage');
+  clearMsg(messageElement);
+  button.disabled = true;
+  button.textContent = 'Salvando...';
+
+  try {
+    const organizationId = currentOrganization.organization_id;
+    const file = $('brandingLogoFile').files?.[0] || null;
+    let logoUrl = currentOrganization.logo_url || null;
+
+    if (file) {
+      if (!['image/png','image/jpeg','image/webp'].includes(file.type)) {
+        throw new Error('Use uma imagem PNG, JPG ou WebP.');
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        throw new Error('A logo deve ter no máximo 2 MB.');
+      }
+
+      const extension = ({
+        'image/png':'png',
+        'image/jpeg':'jpg',
+        'image/webp':'webp'
+      })[file.type];
+      const objectPath = `${organizationId}/logo.${extension}`;
+
+      const { error: uploadError } = await client.storage
+        .from('organization-branding')
+        .upload(objectPath, file, {
+          upsert:true,
+          contentType:file.type,
+          cacheControl:'3600'
+        });
+      if (uploadError) throw uploadError;
+
+      const { data: publicData } = client.storage
+        .from('organization-branding')
+        .getPublicUrl(objectPath);
+      logoUrl = `${publicData.publicUrl}?v=${Date.now()}`;
+    }
+
+    const { error } = await client.rpc('update_organization_branding', {
+      p_organization_id: organizationId,
+      p_display_name: v('brandingDisplayName'),
+      p_primary_color: v('brandingPrimaryColor'),
+      p_secondary_color: v('brandingSecondaryColor'),
+      p_logo_url: logoUrl
+    });
+    if (error) throw error;
+
+    await loadOrganizationContext();
+    applyTenantIdentity();
+    msg(messageElement, 'Identidade visual atualizada com sucesso.', 'success');
+  } catch (error) {
+    console.error('Erro ao salvar identidade visual:', error);
+    msg(messageElement, friendlyError(error, 'Não foi possível salvar a identidade visual.'));
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Salvar identidade';
+  }
+});
+
+/* =========================
    CARDS
 ========================= */
 
@@ -3004,6 +3152,10 @@ document
 
 $('residentsCard').onclick =
   showResidents;
+
+
+$('brandingCard').onclick =
+  showBranding;
 
 
 /* =========================
