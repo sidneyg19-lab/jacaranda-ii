@@ -3745,6 +3745,9 @@ async function requestForm() {
 
       const payload = {
 
+        organization_id:
+          currentOrganization.organization_id,
+
         apartment_id:
           Number(
             v('fApartment')
@@ -4100,7 +4103,8 @@ async function openRequest(request) {
       const { error } = await client
         .from('requests')
         .update(payload)
-        .eq('id', request.id);
+        .eq('id', request.id)
+        .eq('organization_id', currentOrganization.organization_id);
 
       if (error) {
         button.disabled = false;
@@ -5743,6 +5747,9 @@ function documentForm(
 
         if (!item.id) {
 
+          payload.organization_id =
+            currentOrganization.organization_id;
+
           payload.created_by =
             currentUser.id;
         }
@@ -5758,6 +5765,10 @@ function documentForm(
               .eq(
                 'id',
                 item.id
+              )
+              .eq(
+                'organization_id',
+                currentOrganization.organization_id
               );
 
         } else {
@@ -6269,6 +6280,7 @@ async function feedbackForm() {
       try {
 
         const payload = {
+          organization_id:currentOrganization.organization_id,
           user_id:currentUser.id,
           apartment_id:Number(v('feedbackApartment')),
           type:v('feedbackType'),
@@ -6580,16 +6592,43 @@ async function saveRecord(
 
     let result;
 
+    const tenantTables = new Set([
+      'notices',
+      'requests',
+      'events',
+      'cleaning_tasks',
+      'maintenance_tasks',
+      'goals'
+    ]);
+
+    if (tenantTables.has(table)) {
+      if (!currentOrganization?.organization_id) {
+        throw new Error('Não foi possível identificar o condomínio ativo.');
+      }
+
+      if (!id) {
+        payload.organization_id = currentOrganization.organization_id;
+      }
+    }
+
     if (id) {
 
-      result =
-        await client
-          .from(table)
-          .update(payload)
-          .eq(
-            'id',
-            id
-          );
+      let query = client
+        .from(table)
+        .update(payload)
+        .eq(
+          'id',
+          id
+        );
+
+      if (tenantTables.has(table)) {
+        query = query.eq(
+          'organization_id',
+          currentOrganization.organization_id
+        );
+      }
+
+      result = await query;
 
     } else {
 
