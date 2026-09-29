@@ -1,4 +1,4 @@
-const CACHE_NAME = 'portal-morador-v6';
+const CACHE_NAME = 'portal-morador-v7';
 
 const APP_FILES = [
   './',
@@ -24,8 +24,8 @@ self.addEventListener('install', event => {
   );
 
   /*
-    Faz a nova versão do Service Worker
-    assumir sem ficar aguardando indefinidamente.
+    Ativa imediatamente a nova versão
+    do Service Worker.
   */
   self.skipWaiting();
 });
@@ -61,7 +61,7 @@ self.addEventListener('activate', event => {
 
       /*
         Faz o novo Service Worker assumir
-        as páginas abertas.
+        imediatamente as páginas abertas.
       */
       self.clients.claim()
 
@@ -77,31 +77,130 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
 
   /*
-    Cache somente para requisições GET.
-    POST, PATCH, DELETE etc. seguem normalmente.
+    Interceptamos somente GET.
+    Requisições POST, PATCH, DELETE etc.
+    continuam normalmente.
   */
-  if (
-    event.request.method !== 'GET'
-  ) {
+  if (event.request.method !== 'GET') {
     return;
   }
 
+
+  /*
+    =========================
+    NAVEGAÇÃO / INDEX.HTML
+    =========================
+
+    Para páginas HTML, sempre buscamos
+    a versão mais recente diretamente
+    da rede.
+
+    cache: 'no-store' evita que o navegador
+    entregue uma cópia antiga do HTML.
+
+    Se estiver offline, usamos o cache.
+  */
+
+  if (event.request.mode === 'navigate') {
+
+    event.respondWith(
+
+      fetch(
+        new Request(
+          event.request,
+          {
+            cache: 'no-store'
+          }
+        )
+      )
+
+        .then(response => {
+
+          if (
+            response &&
+            response.status === 200
+          ) {
+
+            const copy =
+              response.clone();
+
+            caches
+              .open(CACHE_NAME)
+              .then(cache => {
+
+                /*
+                  Guardamos a página principal
+                  para funcionamento offline.
+                */
+                cache.put(
+                  './index.html',
+                  copy
+                );
+
+              })
+              .catch(error => {
+
+                console.warn(
+                  'Falha ao atualizar cache do HTML:',
+                  error
+                );
+
+              });
+          }
+
+          return response;
+        })
+
+        .catch(async () => {
+
+          /*
+            Se estiver sem internet,
+            tenta primeiro a URL solicitada.
+          */
+          const cachedRequest =
+            await caches.match(
+              event.request
+            );
+
+          if (cachedRequest) {
+            return cachedRequest;
+          }
+
+          /*
+            Fallback para o index principal.
+          */
+          return caches.match(
+            './index.html'
+          );
+        })
+    );
+
+    return;
+  }
+
+
+  /*
+    =========================
+    DEMAIS ARQUIVOS
+    =========================
+
+    CSS, JS, manifest, imagens etc.
+
+    NETWORK FIRST:
+    tenta buscar a versão atualizada.
+
+    Caso a rede falhe,
+    utiliza o cache.
+  */
+
   event.respondWith(
 
-    /*
-      NETWORK FIRST
-
-      Sempre tenta buscar a versão mais recente
-      na rede primeiro.
-
-      Se a internet falhar, utiliza o cache.
-    */
     fetch(event.request)
 
       .then(response => {
 
         /*
-          Só armazenamos respostas válidas.
+          Armazena somente respostas válidas.
         */
         if (
           response &&
@@ -134,10 +233,6 @@ self.addEventListener('fetch', event => {
         return response;
       })
 
-      /*
-        Sem conexão:
-        tenta entregar a versão armazenada.
-      */
       .catch(() =>
         caches.match(
           event.request
@@ -167,8 +262,8 @@ self.addEventListener('push', event => {
     /*
       Fallback genérico da plataforma.
 
-      Não usamos nome de condomínio aqui,
-      pois a PWA atende múltiplos tenants.
+      Não utilizamos nome de condomínio aqui,
+      pois o Portal atende múltiplos tenants.
     */
     data = {
 
@@ -211,8 +306,8 @@ self.addEventListener('push', event => {
       .showNotification(
 
         /*
-          Se o backend enviar o nome do condomínio,
-          usamos esse título.
+          Se o backend enviar um título específico,
+          como o nome do condomínio, utilizamos ele.
 
           Caso contrário:
           Portal do Morador.
@@ -227,11 +322,11 @@ self.addEventListener('push', event => {
             'Você tem uma nova notificação.',
 
           /*
-            Pode receber futuramente a logo
-            específica do condomínio pelo push.
+            Futuramente pode receber a logo
+            específica do condomínio.
 
-            Caso não receba:
-            usa o ícone geral do Portal.
+            Caso não receba,
+            usa o ícone geral da plataforma.
           */
           icon:
             data.icon ||
@@ -288,8 +383,8 @@ self.addEventListener(
 
     /*
       Adicionamos os dados necessários
-      para o index.html descobrir o
-      destino correto.
+      para o index.html descobrir
+      o destino correto.
     */
 
     if (
