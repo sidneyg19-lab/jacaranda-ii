@@ -322,6 +322,79 @@ header{
   }
 }
 
+.platform-tenant-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:12px;
+}
+
+.tenant-manager-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+
+.tenant-manager-card{
+  border:1px solid #e5ebe8;
+  border-radius:15px;
+  padding:16px;
+  background:#fff;
+}
+
+.feature-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+}
+
+.feature-switch{
+  position:relative;
+  width:48px;
+  height:28px;
+  flex:0 0 auto;
+}
+
+.feature-switch input{
+  opacity:0;
+  width:0;
+  height:0;
+}
+
+.feature-slider{
+  position:absolute;
+  inset:0;
+  border-radius:20px;
+  background:#cfd7d3;
+  transition:.2s;
+}
+
+.feature-slider:before{
+  content:'';
+  position:absolute;
+  width:22px;
+  height:22px;
+  left:3px;
+  top:3px;
+  border-radius:50%;
+  background:#fff;
+  transition:.2s;
+  box-shadow:0 1px 4px #0002;
+}
+
+.feature-switch input:checked + .feature-slider{
+  background:var(--tenant-secondary);
+}
+
+.feature-switch input:checked + .feature-slider:before{
+  transform:translateX(20px);
+}
+
+@media(max-width:700px){
+  .tenant-manager-grid{grid-template-columns:1fr;}
+}
+
 .header-btn{
   border:0;
   background:#ffffff21;
@@ -1468,6 +1541,36 @@ footer{
 
 </section>
 
+<section id="tenantManagerView" class="hidden">
+  <div class="section-title">Administração da Plataforma</div>
+
+  <div class="panel view-header">
+    <div>
+      <h2 id="tenantManagerTitle">Gerenciar condomínio</h2>
+      <p id="tenantManagerSubtitle" class="muted">Configurações exclusivas deste tenant.</p>
+    </div>
+    <button id="backToPlatformButton" class="btn btn-secondary" type="button">← Condomínios</button>
+  </div>
+
+  <div id="tenantManagerOverview" class="platform-summary-grid"></div>
+
+  <div class="tenant-manager-grid">
+    <div class="tenant-manager-card">
+      <h3 style="margin-bottom:6px">Estrutura</h3>
+      <p class="muted" style="margin-bottom:16px">Ative recursos estruturais somente quando este condomínio precisar.</p>
+      <div id="tenantFeaturesList" class="list">
+        <div class="loading">Carregando recursos...</div>
+      </div>
+    </div>
+
+    <div class="tenant-manager-card">
+      <h3 style="margin-bottom:6px">Organização das unidades</h3>
+      <p id="tenantStructureDescription" class="muted">Apartamentos vinculados diretamente ao condomínio.</p>
+      <div id="tenantBuildingsArea" style="margin-top:14px"></div>
+    </div>
+  </div>
+</section>
+
 <section id="moduleView" class="hidden">
 
   <div class="section-title">
@@ -1817,6 +1920,7 @@ let currentModule = null;
 let currentOrganizations = [];
 let currentOrganization = null;
 let currentIsPlatformAdmin = false;
+let currentPlatformOrganization = null;
 
 function applyTenantIdentity() {
   if (!currentOrganization) return;
@@ -2098,6 +2202,7 @@ function hideViews() {
   [
     'homeView',
     'platformView',
+    'tenantManagerView',
     'moduleView',
     'brandingView',
     'residentsView',
@@ -2393,6 +2498,9 @@ async function showPlatformAdmin() {
             <div class="platform-stat"><strong>${Number(org.administrators || 0)}</strong><br>administradores</div>
           </div>
           ${isMyTenant ? '<div style="margin-top:12px"><span class="pill green">Seu condomínio</span></div>' : ''}
+          <div class="platform-tenant-actions">
+            <button class="btn btn-primary btn-small" type="button" onclick="openTenantManager('${esc(org.organization_id)}')">Gerenciar</button>
+          </div>
         </div>
       `;
     }).join('');
@@ -2401,6 +2509,137 @@ async function showPlatformAdmin() {
   } catch (error) {
     console.error('Painel da plataforma:', error);
     $('platformOrganizationsList').innerHTML = `<div class="empty">${esc(friendlyError(error, 'Não foi possível carregar os condomínios.'))}</div>`;
+  }
+}
+
+
+async function openTenantManager(organizationId) {
+  if (!currentIsPlatformAdmin) {
+    alert('Acesso restrito à administração da plataforma.');
+    return;
+  }
+
+  try {
+    const { data: organizations, error: orgError } = await client.rpc('get_platform_organizations');
+    if (orgError) throw orgError;
+
+    const organization = (Array.isArray(organizations) ? organizations : [])
+      .find(item => item.organization_id === organizationId);
+
+    if (!organization) throw new Error('Condomínio não encontrado.');
+
+    currentPlatformOrganization = organization;
+    hideViews();
+    $('tenantManagerView').classList.remove('hidden');
+    $('tenantManagerTitle').textContent = `⚙️ ${organization.name}`;
+    $('tenantManagerSubtitle').textContent = `Configurações do tenant • ${organization.slug || ''}`;
+    $('tenantManagerOverview').innerHTML = `
+      <div class="platform-summary-card"><span class="muted">Apartamentos</span><strong>${Number(organization.apartments || 0)}</strong></div>
+      <div class="platform-summary-card"><span class="muted">Moradores ativos</span><strong>${Number(organization.active_residents || 0)}</strong></div>
+      <div class="platform-summary-card"><span class="muted">Administradores</span><strong>${Number(organization.administrators || 0)}</strong></div>
+    `;
+
+    await loadTenantFeatures(organizationId);
+    window.scrollTo({ top:0, behavior:'smooth' });
+  } catch (error) {
+    console.error('Gerenciar tenant:', error);
+    alert(friendlyError(error, 'Não foi possível abrir o gerenciamento do condomínio.'));
+  }
+}
+
+async function loadTenantFeatures(organizationId) {
+  $('tenantFeaturesList').innerHTML = '<div class="loading">Carregando recursos...</div>';
+  $('tenantBuildingsArea').innerHTML = '';
+
+  try {
+    const [featuresResult, enabledResult, buildingsResult] = await Promise.all([
+      client.from('platform_features').select('key,name,description,active').eq('active', true).order('name'),
+      client.from('organization_features').select('feature_key,enabled').eq('organization_id', organizationId),
+      client.from('organization_buildings').select('id,name,active').eq('organization_id', organizationId).order('name')
+    ]);
+
+    if (featuresResult.error) throw featuresResult.error;
+    if (enabledResult.error) throw enabledResult.error;
+    if (buildingsResult.error) throw buildingsResult.error;
+
+    const enabledMap = new Map((enabledResult.data || []).map(item => [item.feature_key, item.enabled === true]));
+    const features = featuresResult.data || [];
+
+    if (!features.length) {
+      $('tenantFeaturesList').innerHTML = '<div class="empty">Nenhum recurso disponível.</div>';
+    } else {
+      $('tenantFeaturesList').innerHTML = features.map(feature => `
+        <div class="list-item">
+          <div class="feature-row">
+            <div>
+              <h4>${esc(feature.name)}</h4>
+              <p>${esc(feature.description || '')}</p>
+            </div>
+            <label class="feature-switch" title="Ativar ou desativar ${esc(feature.name)}">
+              <input type="checkbox" ${enabledMap.get(feature.key) ? 'checked' : ''}
+                onchange="setTenantFeature('${esc(feature.key)}', this.checked, this)">
+              <span class="feature-slider"></span>
+            </label>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    renderTenantBuildings(enabledMap.get('buildings') === true, buildingsResult.data || []);
+  } catch (error) {
+    console.error('Features do tenant:', error);
+    $('tenantFeaturesList').innerHTML = `<div class="empty">${esc(friendlyError(error, 'Não foi possível carregar os recursos.'))}</div>`;
+  }
+}
+
+function renderTenantBuildings(buildingsEnabled, buildings) {
+  if (!buildingsEnabled) {
+    $('tenantStructureDescription').textContent = 'Estrutura simples: apartamentos vinculados diretamente ao condomínio.';
+    $('tenantBuildingsArea').innerHTML = '<span class="pill gray">Torres / Blocos desativado</span>';
+    return;
+  }
+
+  $('tenantStructureDescription').textContent = 'Estrutura com Torres / Blocos ativada para este condomínio.';
+  if (!buildings.length) {
+    $('tenantBuildingsArea').innerHTML = '<div class="empty">Recurso ativado. Nenhuma torre ou bloco cadastrado ainda.</div>';
+    return;
+  }
+
+  $('tenantBuildingsArea').innerHTML = buildings.map(building => `
+    <div class="list-item">
+      <div class="list-top">
+        <div><h4>${esc(building.name)}</h4><p>${building.active ? 'Ativo' : 'Inativo'}</p></div>
+        ${pill(building.active ? 'ativo' : 'inativo')}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function setTenantFeature(featureKey, enabled, input) {
+  const organizationId = currentPlatformOrganization?.organization_id;
+  if (!currentIsPlatformAdmin || !organizationId) {
+    input.checked = !enabled;
+    return;
+  }
+
+  input.disabled = true;
+  try {
+    const { error } = await client
+      .from('organization_features')
+      .upsert({
+        organization_id: organizationId,
+        feature_key: featureKey,
+        enabled,
+        updated_at: new Date().toISOString()
+      }, { onConflict:'organization_id,feature_key' });
+
+    if (error) throw error;
+    await loadTenantFeatures(organizationId);
+  } catch (error) {
+    console.error('Alterar feature:', error);
+    input.checked = !enabled;
+    input.disabled = false;
+    alert(friendlyError(error, 'Não foi possível alterar este recurso.'));
   }
 }
 
@@ -2902,6 +3141,7 @@ $('logoutButton').onclick =
     currentOrganizations = [];
     currentOrganization = null;
     currentIsPlatformAdmin = false;
+    currentPlatformOrganization = null;
     $('platformAdminButton')?.classList.add('hidden');
 
     showLogin();
@@ -2915,6 +3155,9 @@ $('platformAdminButton').onclick =
 
 $('backToTenantButton').onclick =
   showHome;
+
+$('backToPlatformButton').onclick =
+  showPlatformAdmin;
 
 
 /* =========================
