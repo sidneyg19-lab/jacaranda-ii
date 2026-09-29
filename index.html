@@ -2552,15 +2552,17 @@ async function loadTenantFeatures(organizationId) {
   $('tenantBuildingsArea').innerHTML = '';
 
   try {
-    const [featuresResult, enabledResult, buildingsResult] = await Promise.all([
+    const [featuresResult, enabledResult, buildingsResult, apartmentsResult] = await Promise.all([
       client.from('platform_features').select('key,name,description,active').eq('active', true).order('name'),
       client.from('organization_features').select('feature_key,enabled').eq('organization_id', organizationId),
-      client.from('organization_buildings').select('id,name,active').eq('organization_id', organizationId).order('name')
+      client.from('organization_buildings').select('id,name,active').eq('organization_id', organizationId).order('name'),
+      client.from('apartments').select('id,number,floor,building_id').eq('organization_id', organizationId).eq('active', true)
     ]);
 
     if (featuresResult.error) throw featuresResult.error;
     if (enabledResult.error) throw enabledResult.error;
     if (buildingsResult.error) throw buildingsResult.error;
+    if (apartmentsResult.error) throw apartmentsResult.error;
 
     const enabledMap = new Map((enabledResult.data || []).map(item => [item.feature_key, item.enabled === true]));
     const features = featuresResult.data || [];
@@ -2585,14 +2587,14 @@ async function loadTenantFeatures(organizationId) {
       `).join('');
     }
 
-    renderTenantBuildings(enabledMap.get('buildings') === true, buildingsResult.data || []);
+    renderTenantBuildings(enabledMap.get('buildings') === true, buildingsResult.data || [], apartmentsResult.data || []);
   } catch (error) {
     console.error('Features do tenant:', error);
     $('tenantFeaturesList').innerHTML = `<div class="empty">${esc(friendlyError(error, 'Não foi possível carregar os recursos.'))}</div>`;
   }
 }
 
-function renderTenantBuildings(buildingsEnabled, buildings) {
+function renderTenantBuildings(buildingsEnabled, buildings, apartments = []) {
   if (!buildingsEnabled) {
     $('tenantStructureDescription').textContent = 'Estrutura simples: apartamentos vinculados diretamente ao condomínio.';
     $('tenantBuildingsArea').innerHTML = '<span class="pill gray">Torres / Blocos desativado</span>';
@@ -2621,7 +2623,10 @@ function renderTenantBuildings(buildingsEnabled, buildings) {
         </div>
         ${pill(building.active ? 'ativo' : 'inativo')}
       </div>
+      <div class="muted" style="margin-top:8px">${apartments.filter(apartment => apartment.building_id === building.id).length} apartamento(s) vinculado(s)</div>
       <div class="actions" style="margin-top:10px">
+        <button class="btn btn-primary btn-small" type="button"
+          onclick="openApartmentGenerator('${esc(building.id)}', '${esc(String(building.name).replace(/'/g, "\\'"))}')">Gerenciar apartamentos</button>
         <button class="btn btn-secondary btn-small" type="button"
           onclick="openBuildingForm('${esc(building.id)}', '${esc(String(building.name).replace(/'/g, "\\'"))}')">Editar</button>
         <button class="btn ${building.active ? 'btn-danger' : 'btn-primary'} btn-small" type="button"
@@ -2699,6 +2704,150 @@ async function saveBuilding(buildingId = '') {
     console.error('Salvar Torre / Bloco:', error);
     const duplicate = String(error?.code || '') === '23505';
     msg(message, duplicate ? 'Já existe uma Torre / Bloco com esse nome neste condomínio.' : friendlyError(error, 'Não foi possível salvar a Torre / Bloco.'));
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+
+function buildApartmentNumbers(floors, perFloor, firstFloor = 1) {
+  const items = [];
+  for (let floor = firstFloor; floor < firstFloor + floors; floor++) {
+    for (let unit = 1; unit <= perFloor; unit++) {
+      items.push({ floor, number: `${floor}${String(unit).padStart(2, '0')}` });
+    }
+  }
+  return items;
+}
+
+function openApartmentGenerator(buildingId, buildingName) {
+  if (!currentIsPlatformAdmin || !currentPlatformOrganization?.organization_id) return;
+
+  $('genericModalTitle').textContent = `Apartamentos • ${buildingName}`;
+  $('genericModalSubtitle').textContent = `Geração automática para ${currentPlatformOrganization.name || ''}`;
+  $('genericModalBody').innerHTML = `
+    <form id="apartmentGeneratorForm">
+      <div class="form-grid">
+        <div class="field">
+          <label>Quantidade de andares</label>
+          <input id="generatorFloors" type="number" min="1" max="200" value="16" required>
+        </div>
+        <div class="field">
+          <label>Apartamentos por andar</label>
+          <input id="generatorPerFloor" type="number" min="1" max="99" value="6" required>
+        </div>
+        <div class="field">
+          <label>Primeiro andar</label>
+          <input id="generatorFirstFloor" type="number" min="0" max="999" value="1" required>
+        </div>
+        <div class="field">
+          <label>Padrão</label>
+          <input value="101, 102, 103..." disabled>
+        </div>
+      </div>
+      <div id="apartmentGeneratorPreview" class="request-summary" style="margin-top:4px"></div>
+      <div class="actions">
+        <button id="apartmentGenerateButton" class="btn btn-primary" type="submit">Gerar apartamentos</button>
+        <button class="btn btn-secondary" type="button" onclick="closeModal('genericModal')">Cancelar</button>
+      </div>
+      <div id="apartmentGeneratorMessage" class="message"></div>
+    </form>
+  `;
+
+  const refreshPreview = () => {
+    const floors = Number($('generatorFloors')?.value || 0);
+    const perFloor = Number($('generatorPerFloor')?.value || 0);
+    const firstFloor = Number($('generatorFirstFloor')?.value || 0);
+    const items = floors > 0 && perFloor > 0 ? buildApartmentNumbers(floors, perFloor, firstFloor) : [];
+    const first = items.slice(0, Math.min(perFloor, 6)).map(item => item.number).join(', ');
+    const last = items.slice(-Math.min(perFloor, 6)).map(item => item.number).join(', ');
+    $('apartmentGeneratorPreview').innerHTML = items.length
+      ? `<strong>Prévia</strong><p class="muted" style="margin-top:6px">Primeiro andar: ${esc(first)}${items.length > perFloor ? `<br>Último andar: ${esc(last)}` : ''}<br><strong>Total: ${items.length} apartamentos</strong></p>`
+      : '<span class="muted">Informe uma configuração válida.</span>';
+  };
+
+  ['generatorFloors','generatorPerFloor','generatorFirstFloor'].forEach(id => $(id)?.addEventListener('input', refreshPreview));
+  refreshPreview();
+  $('genericModal').classList.remove('hidden');
+
+  $('apartmentGeneratorForm').onsubmit = async event => {
+    event.preventDefault();
+    await generateApartmentsForBuilding(buildingId, buildingName);
+  };
+}
+
+async function generateApartmentsForBuilding(buildingId, buildingName) {
+  const organizationId = currentPlatformOrganization?.organization_id;
+  const floors = Number($('generatorFloors')?.value || 0);
+  const perFloor = Number($('generatorPerFloor')?.value || 0);
+  const firstFloor = Number($('generatorFirstFloor')?.value || 0);
+  const button = $('apartmentGenerateButton');
+  const message = $('apartmentGeneratorMessage');
+
+  if (!currentIsPlatformAdmin || !organizationId || !buildingId) return;
+  if (!Number.isInteger(floors) || floors < 1 || !Number.isInteger(perFloor) || perFloor < 1 || !Number.isInteger(firstFloor) || firstFloor < 0) {
+    msg(message, 'Informe valores válidos para gerar os apartamentos.');
+    return;
+  }
+
+  const wanted = buildApartmentNumbers(floors, perFloor, firstFloor);
+  if (!wanted.length || wanted.length > 5000) {
+    msg(message, 'Quantidade de apartamentos inválida.');
+    return;
+  }
+
+  if (!confirm(`Gerar ${wanted.length} apartamentos em ${buildingName}?\n\nOs apartamentos já existentes nesta torre não serão duplicados. Uma unidade existente sem torre, com o mesmo número, será vinculada a esta torre.`)) return;
+
+  button.disabled = true;
+  clearMsg(message);
+
+  try {
+    const { data: existing, error: existingError } = await client
+      .from('apartments')
+      .select('id,number,floor,building_id')
+      .eq('organization_id', organizationId);
+    if (existingError) throw existingError;
+
+    const rows = existing || [];
+    const inBuilding = new Map(rows.filter(row => row.building_id === buildingId).map(row => [String(row.number), row]));
+    const unassigned = new Map(rows.filter(row => row.building_id == null).map(row => [String(row.number), row]));
+    const updates = [];
+    const inserts = [];
+
+    for (const item of wanted) {
+      if (inBuilding.has(item.number)) continue;
+      const loose = unassigned.get(item.number);
+      if (loose) {
+        updates.push({ id: loose.id, floor: item.floor });
+        unassigned.delete(item.number);
+      } else {
+        inserts.push({ organization_id: organizationId, building_id: buildingId, number: item.number, floor: item.floor, active: true });
+      }
+    }
+
+    for (const item of updates) {
+      const { error } = await client
+        .from('apartments')
+        .update({ building_id: buildingId, floor: item.floor })
+        .eq('id', item.id)
+        .eq('organization_id', organizationId)
+        .is('building_id', null);
+      if (error) throw error;
+    }
+
+    if (inserts.length) {
+      const { error } = await client.from('apartments').insert(inserts);
+      if (error) throw error;
+    }
+
+    msg(message, `${wanted.length} unidades processadas: ${inserts.length} criadas, ${updates.length} existentes vinculadas e ${wanted.length - inserts.length - updates.length} já estavam nesta torre.`, 'success');
+    setTimeout(async () => {
+      closeModal('genericModal');
+      await loadTenantFeatures(organizationId);
+    }, 900);
+  } catch (error) {
+    console.error('Gerar apartamentos:', error);
+    msg(message, friendlyError(error, 'Não foi possível gerar os apartamentos.'));
   } finally {
     if (button) button.disabled = false;
   }
