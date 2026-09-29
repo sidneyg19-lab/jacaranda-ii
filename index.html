@@ -3099,7 +3099,7 @@ $('brandingForm').addEventListener('submit', async event => {
       const { error: uploadError } = await client.storage
         .from('organization-branding')
         .upload(objectPath, file, {
-          upsert:true,
+          upsert:false,
           contentType:file.type,
           cacheControl:'3600'
         });
